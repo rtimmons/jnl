@@ -4,7 +4,7 @@ use warnings;
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
-use Carp::Heavy;
+use Carp;
 
 use jnl qw(dbdir guid open_file);
 

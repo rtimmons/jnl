@@ -5,7 +5,7 @@ use warnings;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
-use Carp::Heavy;
+use Carp;
 
 use jnl qw(dbdir open_file today daily_file_name daily_file_path);
 

@@ -7,7 +7,7 @@ our @EXPORT_OK = qw(dbdir guid open_file open_dir today daily_file_name daily_fi
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
-use Carp::Heavy;
+use Carp;
 use Date::Parse;
 
 sub dbdir {
