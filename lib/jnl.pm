@@ -2,7 +2,7 @@ package jnl;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(dbdir guid open_file open_dir today);
+our @EXPORT_OK = qw(dbdir guid open_file open_dir today daily_file_name daily_file_path);
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
@@ -26,6 +26,16 @@ sub dbdir {
         }
     }
     return $out;
+}
+
+sub daily_file_name {
+    # confusing: no suffix
+    my ($date) = @_;
+    return "dxx-$date";
+}
+sub daily_file_path {
+    my ($basedir, $daily_file_name) = @_;
+    return "$basedir/$daily_file_name.txt";
 }
 
 # TODO: name is bad

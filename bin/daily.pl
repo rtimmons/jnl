@@ -7,17 +7,9 @@ use lib "$Bin/../lib";
 
 use Carp::Heavy;
 
-use jnl qw(dbdir open_file today);
+use jnl qw(dbdir open_file today daily_file_name daily_file_path);
 
-sub daily_file_name {
-    # confusing: no suffix
-    my ($date) = @_;
-    return "dxx-$date";
-}
-sub daily_file_path {
-    my ($basedir, $daily_file_name) = @_;
-    return "$basedir/$daily_file_name.txt";
-}
+
 sub write_file {
     my ($daily_file_name, $jfile, $conts) = @_;
     open  JFILE, ">$jfile" or die "Couldn't write $jfile: $!";
