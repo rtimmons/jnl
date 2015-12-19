@@ -15,6 +15,7 @@ my @lines;
 my $date;
 my $weather;
 my $location;
+my $tags;
 my $header = 0;
 
 
@@ -35,6 +36,7 @@ sub write_entry {
     $date     = undef;
     $weather  = undef;
     $location = undef;
+    $tags     = undef;
 }
 
 # icky, stateful, line-by-line parsing. Consume until 
@@ -55,7 +57,12 @@ while(<>) {
         $weather = $1;
         next;
     }
-    if ( $header ) { $header = 0; }
+    if ( $header && m/^	Tags:	(.*)/ ) {
+        $tags = $1;
+        next;
+    }
+    # `next` is so we skip first blank separator line
+    if ( $header ) { $header = 0; next; }
     push @lines, $_;
 }
 
