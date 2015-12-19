@@ -1,10 +1,84 @@
-plaintext daily worklogs and scratch-files
+# JNL: Directories of Text Files for Daily Work
 
-- env var `JNL_DB` controls db root.  Defaults to `testdb` locally.
+`jnl` is a set of small scripts to help manage daily worklogs and unsorted scratch files all stored as plaintext.
 
-- db has subdirs `worklogs` with 20-character random guid-esque filenames intentionally not sorted. Run `worklog.pl` to generate a new one and open in TextMate.
+## Overview and Installation
 
-- db has subdir `daily` that has filenames like `dxx-2015-12-19.txt`. The `dxx` prefix is to help searching & grepping. Run `daily.pl` to open today's entry (creating it if doesn't already exist)
+    cd ..wherever-you-keep-your-projects..
+    
+    # Create your Journal Database. Choose whatever or location you'd like. Dropbox works okay.
+    mkdir Journal
+    # Setup environment variables
+    # bash:
+    echo "export JNL_DB=$PWD/Journal" >> ~/.bashrc
+    # zsh:
+    echo "export JNL_DB=$PWD/Journal" >> ~/.zshrc
+    # optional: initialize it as a git repo
+    git init Journal
+    
+    # Get the stupid jnl scripts
+    git clone https://.../jnl.git
+    
+    # Add jnl to $PATH
+    # bash:
+    echo "export PATH=$PWD/jnl/bin:\$PATH" >> ~/.bashrc
+    # zsh
+    echo "export PATH=$PWD/jnl/bin:\$PATH" >> ~/.zshrc
 
-- `day1-convert.pl` reads plaintext journal exports from day1.app and creates a daily entry file for each.
 
+Try it out:
+
+    jnl daily
+    jnl worklog
+    jnl database
+    jnl open worklogs
+    jnl open daily
+    jnl commit
+
+(The `jnl` script doesn't exist yet - you have to go thru the `.pl` scripts manually like an animal. I'm just using shell aliases...)
+
+You may want to create shell aliases. Check out suggestions in `aliases.zshrc`.
+
+TODO: `jnl` wrapper script.
+
+## Daily & Worklog Files
+
+These files are organized into a "database" which is just a folder. When you run the `jnl` scripts, they look for the `JNL_DB` environment variable for the path to that folder. If not set, the `testdb` directory within this repo will be used so you can play with `jnl`s features or debug while making changes.
+
+There are two kinds of files `jnl` knows about: 
+
+1.  "daily" files
+
+    -   You can create at most one per day
+    -   Daily files live in `$JNL_DB/daily`
+    -   Use `daily.pl` to open the current day's file (and create it if it doesn't exist)
+    
+    I use daily files for jotting down things I did, links to pull-requests I created, for putting meeting notes, etc.
+
+    The filenames for daily files are simply e.g. `dxx-2015-12-19.txt`. The `dxx` prefix is to help searching & grepping.
+
+2.  "worklog" files
+
+    -   Create them ad-hoc. They're cheap and lightweight to create and manage.
+    -   Worklog files live in `$JNL_DB/worklogs`
+    -   Use `worklog.pl` to create a new worklog file and open in TextMate
+    -   New files have a random "guid"-esque filename. They are not intended to be sorted by name, but you may want to sort them by date when you open the directory up in Finder to find files
+
+    Create them ad-hoc for composing text, saving snippets of code, drafting ideas, or as buffer space. 
+
+    I like to give myself free-reign to save anything at all into worklog files; I don't treat each one as being important.  Once in the habit of saving random text to worklogs it's very easy to throw one-off shell commands or script output or whatever and search for them later.
+
+    The important files - ones that I often refer back to -  I include the text `@@important`. I have a Finder smart-folder setup that gives me all my important files.
+
+
+## DayOne Conversion
+
+I used to use DayOne.app for my daily files but it's a pain. But you can export your DayOne journal to plaintext and then use `day1-convert.pl` to convert the entires to daily entries.
+
+## Git and Backup
+
+Don't keep your db folder in here, create a new git repo for it. I like to use `~/Journal`. See above.
+
+If you setup a git repo for your db, the `jnl commit` command will "autopush" your journal with a generated commit message. I don't find there's value in commit messages for these files. If you do, you can always commit like usual.
+
+I like to create a "backup" remote on an external drive and set it up to mirror my local journal repo. So I can just do `git push backup`.
