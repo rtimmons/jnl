@@ -6,7 +6,7 @@ use FindBin qw($Bin);
 use lib "$Bin/../lib";
 use Carp::Heavy;
 
-use jnl qw(dbdir guid open_file today);
+use jnl qw(dbdir open_file today);
 
 sub daily_file_name {
     # confusing: no suffix
