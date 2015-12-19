@@ -39,6 +39,7 @@ sub today {
             localtime(time);
     }
     else {
+        # IDEA: support Date::Manip or ParseDateString etc stuff so can enter "yesterday" etc
         # annoying that strptime and localtime aren't compatible (are they?)
         ($sec,$min,$hour,$mday,$mon,$year,$zone) = strptime($date); 
     }
