@@ -6,4 +6,5 @@ plaintext daily worklogs and scratch-files
 
 - db has subdir `daily` that has filenames like `dxx-2015-12-19.txt`. The `dxx` prefix is to help searching & grepping. Run `daily.pl` to open today's entry (creating it if doesn't already exist)
 
+- `day1-convert.pl` reads plaintext journal exports from day1.app and creates a daily entry file for each.
 

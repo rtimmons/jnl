@@ -45,7 +45,7 @@ sub today {
     }
     
     $year += 1900;
-    
+    $mon  += 1;
     $mon  = sprintf("%02d", $mon);
     $mday = sprintf("%02d", $mday);
     return "$year-$mon-$mday";

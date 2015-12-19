@@ -5,6 +5,12 @@ use warnings;
 
 use Carp::Heavy;
 
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
+
+use jnl qw(dbdir today);
+
+
 my @lines;
 my $date;
 my $weather;
@@ -15,7 +21,9 @@ my $header = 0;
 my $pending = 0;
 sub write_entry {
     if (defined($date)) {
-        print "$date\n";
+        $date =~ s/\sat\s/ /;
+        my $today = today($date);
+        print "$today\n";
         print join("\n", @lines);
         print "\n==========================================\n";        
     }
@@ -25,7 +33,8 @@ sub write_entry {
     $location = undef;
 }
 
-
+# icky, stateful, line-by-line parsing. Consume until 
+# we see next 'Date' line then flush.
 while(<>) {
     chomp;
     if(!$header && m/^	Date:	(.*?M)$/) {
