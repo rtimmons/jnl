@@ -58,3 +58,6 @@ while(<>) {
     if ( $header ) { $header = 0; }
     push @lines, $_;
 }
+
+# clear last entry
+write_entry();
