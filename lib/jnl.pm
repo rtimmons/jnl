@@ -4,9 +4,11 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(dbdir guid open_file today);
 
-use Carp::Heavy;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
+
+use Carp::Heavy;
+use Date::Parse;
 
 sub dbdir {
     my ($subdir) = @_;
@@ -26,10 +28,23 @@ sub dbdir {
     return $out;
 }
 
+# TODO: name is bad
 sub today {
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =
-        localtime(time);
+    my ($date) = @_;
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
+    
+    if ( !defined($date) ) {
+        # use today's date
+        ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =
+            localtime(time);
+    }
+    else {
+        # annoying that strptime and localtime aren't compatible (are they?)
+        ($sec,$min,$hour,$mday,$mon,$year,$zone) = strptime($date); 
+    }
+    
     $year += 1900;
+    
     $mon  = sprintf("%02d", $mon);
     $mday = sprintf("%02d", $mday);
     return "$year-$mon-$mday";

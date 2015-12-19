@@ -4,6 +4,7 @@ use warnings;
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
+
 use Carp::Heavy;
 
 use jnl qw(dbdir open_file today);
@@ -31,7 +32,8 @@ sub maybe_write_file {
 
 
 sub main {
-    my $today = today();
+    my ($date) = @_;
+    my $today = today($date);
     my $daily_file_name = daily_file_name($today);
     my $jfile = daily_file_path(dbdir("daily"), $daily_file_name);
     maybe_write_file($daily_file_name, $jfile);
@@ -40,5 +42,5 @@ sub main {
 
 
 if ( $0 eq __FILE__ ) {
-    main();
+    main(@ARGV);
 }
