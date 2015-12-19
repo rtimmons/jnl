@@ -4,11 +4,26 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(dbdir guid open_file);
 
+use Carp::Heavy;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
 sub dbdir {
-    $ENV{JNL_DB} || "$Bin/../testdb";
+    my ($subdir) = @_;
+    my $root = $ENV{JNL_DB} || "$Bin/../testdb";
+    if ( ! -d "$root" ) {
+        croak("Invalid root directory $root");
+    }
+    if ( !defined($subdir) ) {
+        return $root;
+    }
+    my $out = "$root/$subdir";
+    if ( ! -d $out ) {
+        if ( !mkdir($out) ) {
+            croak("Couldn't create $out: $!");
+        }
+    }
+    return $out;
 }
 
 sub guid {

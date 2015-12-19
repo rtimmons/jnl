@@ -22,7 +22,7 @@ sub write_file {
 
 sub main {
     my $guid = guid 20;
-    my $jfile = journal_file_name(dbdir(), $guid);
+    my $jfile = journal_file_name(dbdir("worklogs"), $guid);
     write_file($guid, $jfile);
     open_file($jfile);
 }
