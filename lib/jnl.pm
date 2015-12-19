@@ -2,7 +2,7 @@ package jnl;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(dbdir guid open_file today);
+our @EXPORT_OK = qw(dbdir guid open_file open_dir today);
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
@@ -70,9 +70,16 @@ sub guid {
     join '', @out;
 }
 
+sub open_dir {
+    my ($subdir) = @_;
+    $subdir = dbdir($subdir);
+    system qq{open -a Finder "$subdir"};
+}
+
 sub open_file {
     my ($file) = @_;
     system qq{open -a TextMate "$file"};
 }
+
 
 1
