@@ -2,7 +2,7 @@ package jnl;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(dbdir guid open_file);
+our @EXPORT_OK = qw(dbdir guid open_file today);
 
 use Carp::Heavy;
 use FindBin qw($Bin);
@@ -24,6 +24,15 @@ sub dbdir {
         }
     }
     return $out;
+}
+
+sub today {
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =
+        localtime(time);
+    $year += 1900;
+    $mon  = sprintf("%02d", $mon);
+    $mday = sprintf("%02d", $mday);
+    return "$year-$mon-$mday";
 }
 
 sub guid {
