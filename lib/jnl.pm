@@ -4,8 +4,11 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(dbdir guid open_file);
 
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
+
 sub dbdir {
-    $ENV{WORKLOGS} || "$ENV{HOME}/Projects/WorkLogs";
+    $ENV{JNL_DB} || "$Bin/../testdb";
 }
 
 sub guid {
