@@ -29,7 +29,7 @@ sub write_entry {
         print "Writing $path\n";
         open  JFILE, ">$path" or croak("Couldn't open $path: $!");
         print JFILE "$_\n" for @lines;
-        print JFILE ("\n" x 4) . "My Reference: $daily_file_name  \n";
+        print JFILE ("\n" x 2) . "My Reference: $daily_file_name  \n";
         close JFILE;
     }
     @lines    = ();
