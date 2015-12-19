@@ -2,6 +2,8 @@
 
 `jnl` is a set of small scripts to help manage daily worklogs and unsorted scratch files all stored as plaintext.
 
+Actual code is implemented in ugly untested Perl because the code is stupid simple. Important thing is the idea here 💃
+
 ## Overview and Installation
 
     cd ..wherever-you-keep-your-projects..
@@ -39,7 +41,9 @@ Try it out:
 
 You may want to create shell aliases. Check out suggestions in `aliases.zshrc`.
 
-TODO: `jnl` wrapper script.
+TODO: `jnl` wrapper script.  
+TODO: OS X launcher apps "New Worklog Entry.app", "Today's Entry.app"  
+TODO: generated index page for daily entries and maybe first line or two of worklog entries  
 
 ## Daily & Worklog Files
 
