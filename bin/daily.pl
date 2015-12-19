@@ -19,24 +19,24 @@ sub daily_file_path {
     return "$basedir/$daily_file_name.txt";
 }
 sub write_file {
-    my ($daily_file_name, $jfile) = @_;
+    my ($daily_file_name, $jfile, $conts) = @_;
     open  JFILE, ">$jfile" or die "Couldn't write $jfile: $!";
     print JFILE ("\n" x 4) . "My Reference: $daily_file_name  \n";
     close JFILE;
 }
 sub maybe_write_file {
-    my ($daily_file_name, $jfile) = @_;
+    my ($daily_file_name, $jfile, $conts) = @_;
     return if -f $jfile;
-    write_file($daily_file_name, $jfile);
+    write_file($daily_file_name, $jfile, $conts);
 }
 
 
 sub main {
-    my ($date) = @_;
+    my ($date, $conts) = @_;
     my $today = today($date);
     my $daily_file_name = daily_file_name($today);
     my $jfile = daily_file_path(dbdir("daily"), $daily_file_name);
-    maybe_write_file($daily_file_name, $jfile);
+    maybe_write_file($daily_file_name, $jfile, $conts);
     open_file($jfile);
 }
 
