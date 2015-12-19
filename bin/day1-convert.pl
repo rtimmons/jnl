@@ -8,7 +8,7 @@ use Carp::Heavy;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
-use jnl qw(dbdir today);
+use jnl qw(dbdir today daily_file_name daily_file_path dbdir);
 
 
 my @lines;
@@ -23,9 +23,13 @@ sub write_entry {
     if (defined($date)) {
         $date =~ s/\sat\s/ /;
         my $today = today($date);
-        print "$today\n";
-        print join("\n", @lines);
-        print "\n==========================================\n";        
+        my $daily_file_name = daily_file_name($today);
+        my $path = daily_file_path(dbdir("daily"), $daily_file_name);
+        print "Writing $path\n";
+        open  JFILE, ">$path" or croak("Couldn't open $path: $!");
+        print JFILE "$_\n" for @lines;
+        print JFILE ("\n" x 4) . "My Reference: $daily_file_name  \n";
+        close JFILE;
     }
     @lines    = ();
     $date     = undef;
