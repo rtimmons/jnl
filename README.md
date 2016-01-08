@@ -31,7 +31,7 @@ Then run te various `bin` scripts like a boss.
 
 You may want to create shell aliases. Check out suggestions in `aliases.zshrc`.
 
-There is a "Today's Worklog.app" Apple application. Copy or drag to your Applications directory. This runs `jdaily` to open today's worklog entry in TextMate (creating if not exists).
+There is a "Today's Worklog.app" Apple application. Copy or drag to your Applications directory and rename to end with `.app` to enable.  Funny extension so Spotlight/Alfred & crew don't see this on its own. This little app runs `jdaily` to open today's worklog entry in TextMate (creating if not exists. You can modify it with *Script Editor.app* by dragging it in.
 
 (I cannot recall where I got the cute 'moleskine' icon for the .app. It's entirely possible I stole it and it's copyrighted and you could get into lots of trouble for seeing it. Possibly it's [one of these](http://pica-ae.deviantart.com/art/Moleskine-Icons-91551480)?)
 
