@@ -47,6 +47,7 @@ TODO: 'quick' symlinks:
 - Add @quick(some-identifier). Script to scan for them and create symlinks in 'quick' directory. So if worklogs/QPJX0BGKHPFHZPNJND1K.txt contains @quick(my-novel), symlink `quick/my-novel.txt -> worklogs/QPJX0BGKHPFHZPNJND1K.txt`. Makes it easy to "promote" worklogs items if they become frequently-updated. Potential for "abuse"? Maybe too much structure? Not sure.
 - could add suggested git-push hook to re-set them up?
 - this is a "cache": how to handle changes & conflicts & things created outside the script?
+- if this pans out, maybe dailies are just @daily(2016-01-08)? Harder to enforce uniqueness? Then you have two names - Q4UFG5G2FXTRDJFDZ1N5.txt and 2016-01-08.txt? Not sure if that's really a problem.
 
 Try it out:
 
