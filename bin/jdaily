@@ -13,7 +13,10 @@ use jnl qw(dbdir open_file today daily_file_name daily_file_path);
 sub write_file {
     my ($daily_file_name, $jfile, $conts) = @_;
     open  JFILE, ">$jfile" or die "Couldn't write $jfile: $!";
-    print JFILE ("\n" x 4) . "My Reference: $daily_file_name  \n";
+    print JFILE ("\n" x 4)
+    # Don't put footer on daily entries..still toying with this
+    #    . "My Reference: $daily_file_name  \n"
+    ;
     close JFILE;
 }
 sub maybe_write_file {
