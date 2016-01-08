@@ -13,7 +13,10 @@ sub main {
     my ($type) = @_;
         if      ( !defined($type) )            { $type = "worklogs"; }
         if      ( $type =~ qr/^w[orklgs]*$/i ) { $type = "worklogs"; }
-        elsif   ( $type =~ qr/^d[ailys]*$/i  ) { $type = "daily";    }
+        elsif   ( $type =~ qr/^d[ailyes]*$/i ) { $type = "daily";    }
+        elsif   ( $type =~ qr/^q[uick]*$/i   ) { $type = "quick";    }
+        # TODO: $type =~ today => open today
+        # TODO: else { grep for term in jnl dir? }
         else    { croak("Unknown open type $type"); }
     
     # now do the thing
