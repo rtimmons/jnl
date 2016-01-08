@@ -27,6 +27,21 @@ Actual code is implemented in ugly untested Perl because the code is stupid simp
     # zsh
     echo "export PATH=$PWD/jnl/bin:\$PATH" >> ~/.zshrc
 
+Then run te various `bin` scripts like a boss.
+
+You may want to create shell aliases. Check out suggestions in `aliases.zshrc`.
+
+There is a "Today's Worklog.app" Apple application. Copy or drag to your Applications directory. This runs `jdaily` to open today's worklog entry in TextMate (creating if not exists).
+
+(I cannot recall where I got the cute 'moleskine' icon for the .app. It's entirely possible I stole it and it's copyrighted and you could get into lots of trouble for seeing it. Possibly it's [one of these](http://pica-ae.deviantart.com/art/Moleskine-Icons-91551480)?)
+
+To change the application for opening files, modify `jnl.pm` - see `open -a TextMate.app` for instance.
+
+<!--
+TODO: `jnl` wrapper script.
+TODO: OS X launcher apps "New Worklog Entry.app", "Today's Entry.app"
+TODO: generated index page for daily entries and maybe first line or two of worklog entries
+TODO: fancier file-viewer?
 
 Try it out:
 
@@ -38,12 +53,7 @@ Try it out:
     jnl commit
 
 (The `jnl` script doesn't exist yet - you have to go thru the `.pl` scripts manually like an animal. I'm just using shell aliases...)
-
-You may want to create shell aliases. Check out suggestions in `aliases.zshrc`.
-
-TODO: `jnl` wrapper script.  
-TODO: OS X launcher apps "New Worklog Entry.app", "Today's Entry.app"  
-TODO: generated index page for daily entries and maybe first line or two of worklog entries  
+-->
 
 ## Daily & Worklog Files
 
