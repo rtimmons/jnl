@@ -43,6 +43,11 @@ TODO: OS X launcher apps "New Worklog Entry.app", "Today's Entry.app"
 TODO: generated index page for daily entries and maybe first line or two of worklog entries
 TODO: fancier file-viewer?
 
+TODO: 'quick' symlinks:
+- Add @quick(some-identifier). Script to scan for them and create symlinks in 'quick' directory. So if worklogs/QPJX0BGKHPFHZPNJND1K.txt contains @quick(my-novel), symlink `quick/my-novel.txt -> worklogs/QPJX0BGKHPFHZPNJND1K.txt`. Makes it easy to "promote" worklogs items if they become frequently-updated. Potential for "abuse"? Maybe too much structure? Not sure.
+- could add suggested git-push hook to re-set them up?
+- this is a "cache": how to handle changes & conflicts & things created outside the script?
+
 Try it out:
 
     jnl daily
