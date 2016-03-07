@@ -88,7 +88,7 @@ sub open_dir {
 
 sub open_file {
     my ($file) = @_;
-    system qq{open -a TextMate "$file"};
+    system qq{open -a FoldingText "$file"};
 }
 
 
