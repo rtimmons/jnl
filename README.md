@@ -90,6 +90,15 @@ There are two kinds of files `jnl` knows about:
 
     The important files - ones that I often refer back to -  I include the text `@@important`. I have a Finder smart-folder setup that gives me all my important files.
 
+    **NEW**:  
+    If you have the line `@quick(some-text)`, the `jquick` command will create
+    symlinks in the `$JNL_DB/quick` directory to those files.
+
+    E.g. If the file `MC289YWD6EWRWPYCMTJD.txt` has the contents
+    `quick(2016-resolutions)`, then running `jquick` will result in a symlink
+    `quick/2016-resolutions.txt` pointing to `MC289YWD6EWRWPYCMTJD.txt`. The
+    `some-text` bits between the parentheses must be `a-z`, `A-Z`, `0-9`, `-`,
+    or `_`. Other matches will be ignored.
 
 ## DayOne Conversion
 
