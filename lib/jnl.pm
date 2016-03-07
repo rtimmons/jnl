@@ -2,19 +2,26 @@ package jnl;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(dbdir guid open_file open_dir today daily_file_name daily_file_path);
+our @EXPORT_OK = qw(
+    daily_file_name
+    daily_file_path
+    dbdir
+    guid
+    open_dir
+    open_file
+    today
+);
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
 use Carp;
-use Date::Parse;
 
 sub dbdir {
     my ($subdir) = @_;
     my $root = $ENV{JNL_DB} || "$Bin/../testdb";
     if ( ! -d "$root" ) {
-        croak("Invalid root directory $root");
+        croak("Invalid root directory $root.");
     }
     if ( !defined($subdir) ) {
         return $root;
@@ -88,6 +95,7 @@ sub open_dir {
 
 sub open_file {
     my ($file) = @_;
+    # TODO: support $JNL_DB/settings or something
     system qq{open -a FoldingText "$file"};
 }
 
