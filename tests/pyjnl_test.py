@@ -38,6 +38,32 @@ class Database(object):
         return self._entries
 
 class Tag(object):
+
+    TAG_RE = re.compile(r"""
+    .*
+        @
+            (               # group 1: tag name
+                [^(]+       # anything other than (
+            )
+        (?:                 # non-grouping
+            \(              # literal paren
+                (           # group 2: tag value
+                    [^)]*   # anything other than )
+                )
+            \)
+        )?
+    .*
+    """, re.X)
+
+    @staticmethod
+    def parse(line):
+        re_match = Tag.TAG_RE.match(line)
+        if re_match:
+            tag = Tag(re_match)
+            return tag
+        else:
+            return None
+
     def __init__(self, re_match):
         self._name = re_match.group(1).strip()
         self._value = re_match.group(2)
@@ -67,21 +93,6 @@ class Entry(object):
     def file_path(self):
         return os.path.join(self.path, self.file_name)
 
-    TAG_RE = re.compile(r"""
-    .*
-        @
-            (               # group 1: tag name
-                [^(]+       # anything other than (
-            )
-        (?:                 # non-grouping
-            \(              # literal paren
-                (           # group 2: tag value
-                    [^)]*   # anything other than )
-                )
-            \)
-        )?
-    .*
-    """, re.X)
 
     @property
     def tags(self):
@@ -89,13 +100,11 @@ class Entry(object):
             tags = []
             with open(self.file_path()) as f:
                 for line in f:
-                    re_match = Entry.TAG_RE.match(line)
-                    if re_match:
-                        tag = Tag(re_match)
-                        tags.append(tag)
-                        if tag.name == 'noscan':
-                            break
-            self._tags = tags
+                    t = Tag.parse(line)
+                    tags.append(t)
+                    if t is not None and t.name == 'noscan':
+                        break
+            self._tags = [t for t in tags if t is not None]
         return self._tags
 
     def __str__(self):
