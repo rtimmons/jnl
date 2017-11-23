@@ -41,7 +41,9 @@ class Database(object):
 
     def create_entry(self, tags):
         """See Entry.create() for semantics of tags"""
-        entry = Entry.create(tags)
+        entry = Entry(context=self.context,
+                      tags=tags,
+                      create=True)
         self._entries.append(entry)
         return entry
 
@@ -52,11 +54,11 @@ class Database(object):
         if yyyymmdd is None:
             yyyymmdd = self.context.what_day_is_it.yyyymmdd()
         existing = self.entries_with_tag('daily', yyyymmdd)
-        if existing is None or existing == []:
-            existing = self.create_entry(
-                tags=[('daily', yyyymmdd)]
-            )
-        return existing
+        if existing == []:
+            existing = [self.create_entry(
+                tags=[Tag(name='daily', value=yyyymmdd)]
+            )]
+        return existing[0]
 
 class Tag(object):
 
@@ -85,9 +87,12 @@ class Tag(object):
         else:
             return None
 
-    def __init__(self, re_match):
-        self._name = re_match.group(1).strip()
-        self._value = re_match.group(2)
+    def __init__(self, re_match = None, name = None, value = None):
+        if re_match is not None:
+            name = re_match.group(1).strip()
+            value = re_match.group(2)
+        self._name = name
+        self._value = value
 
     @property
     def name(self):
@@ -105,22 +110,59 @@ class Tag(object):
 
 
 class Entry(object):
-    def __init__(self, context, file_name, path):
+
+    FILENAME_RE = re.compile(r"""
+        ^
+        ([A-Z0-9]+)     # group 1: file name without extension
+        \.
+        (.*?)           # group 2: extension
+        $
+    """, re.X)
+
+    def __init__(self,
+                 context,
+                 path = None,
+                 file_name = None,
+                 guid = None,
+                 tags = None,
+                 create = False):
         self.context = context
-        self.file_name = file_name
+
+        if guid is None:
+            if file_name is None:
+                guid = self.context.guid_generator.guid()
+            else:
+                match = Entry.FILENAME_RE.match(file_name)
+                guid = match.group(1).strip()
+                if match is None:
+                    raise ValueError
+        self.guid = guid
+
+        if path is None:
+            path = self.context.database.path('worklogs')
         self.path = path
-        self._tags = None
+        """dirname of full file_name path"""
+
+        if file_name is None:
+            file_name = "%s.txt" % self.guid
+        self.file_name = file_name
+
+        self._tags = tags
+
+        if create:
+            self._create()
 
     def file_path(self):
         return os.path.join(self.path, self.file_name)
 
-    @staticmethod
-    def create(tags):
-        return {}
-        # TODO: write file and set tags
-        # return Entry(context = None,
-        #              file_name = None,
-        #              path = None)
+    def _create(self):
+        with open(self.file_path(), 'w+') as f:
+            f.write('\n' * 4)
+            f.write("My Reference: %s  \n" % self.guid)
+            for tag in self.tags:
+                f.write(str(tag))
+                f.write('  \n')
+            print("Created %s" % self.file_path())
 
     @property
     def tags(self):
@@ -136,10 +178,11 @@ class Entry(object):
         return self._tags
 
     def has_tag(self, name, val):
-        return any([
+        print "Has_tag %s=%s in %s" % (name,val,self.tags)
+        return any(
             t.name == name and t.value == val 
             for t in self.tags
-        ])
+        )
 
     def __str__(self):
         return "%s: %s" % (self.file_name, [str(t) for t in self.tags])
@@ -152,7 +195,7 @@ class Opener(object):
     def open(self, entry):
         subprocess.call(
             'open', '-a', 'FoldingText',
-            entry.file_path
+            entry.file_path()
         )
 
 class Symlinker(object):
@@ -182,7 +225,6 @@ class GuidGenerator(object):
         return "".join([
             random.choice(GuidGenerator.LETTERS) for i in range(20)
         ])
-        
 
 class Context(object):
     def __init__(self, environment):
@@ -204,19 +246,20 @@ class Main(object):
         self.context = Context(environment = environment)
 
     def run(self, argv):
-        print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
+        # print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
         if argv[1] == 'daily':
             self.daily(argv)
 
     def daily(self, argv):
-        print self.context.what_day_is_it.yyyymmdd()
-        print self.context.guid_generator.guid()
-        self.context.database.daily_entry()
-        print [str(f) for f in self.context.database.entries]
+        pass
+        # print self.context.what_day_is_it.yyyymmdd()
+        # print self.context.guid_generator.guid()
+        # print "Daily: %s" % self.context.database.daily_entry()
+        # print [str(f) for f in self.context.database.entries]
 
-        self.context.opener.open(
-            self.context.database.daily_entry()            
-        )
+        # self.context.opener.open(
+        #     self.context.database.daily_entry()
+        # )
 
 
 def empty_fixture_path():
