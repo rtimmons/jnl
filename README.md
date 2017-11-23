@@ -130,18 +130,30 @@ captain&#39;s logs
 
 ## Requirements
 
-- Python 2.7.10+
+Works for me on Mac OS X 10.13.1. But it's just python.
 
 ## Setup
 
-To automatically install virtualenv and create a new venv,
-use the provided setup script:
-
 ```
-. ./setup.sh -p python2.7.10
+# ensure latest command-line tools
+xcode-select --install
+
+brew install openssl
+
+# follow steps to install pyenv https://github.com/pyenv/pyenv
+brew install pyenv
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+
+CFLAGS="-I$(brew --prefix openssl)/include" \
+    LDFLAGS="-L$(brew --prefix openssl)/lib" \
+    pyenv install -v 2.7.10
+
+pip install -r requirements.txt
 ```
 
-Otherwise
+Then restart your shell (what is this, windows?!).
+
 
 ## Test
 
