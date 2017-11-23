@@ -178,7 +178,6 @@ class Entry(object):
         return self._tags
 
     def has_tag(self, name, val):
-        print "Has_tag %s=%s in %s" % (name,val,self.tags)
         return any(
             t.name == name and t.value == val 
             for t in self.tags
@@ -193,10 +192,10 @@ class Opener(object):
         self.context = context
 
     def open(self, entry):
-        subprocess.call(
+        subprocess.check_call([
             'open', '-a', 'FoldingText',
-            entry.file_path()
-        )
+            entry.file_path(),
+        ])
 
 class Symlinker(object):
     def __init__(self, context):
@@ -257,9 +256,9 @@ class Main(object):
         # print "Daily: %s" % self.context.database.daily_entry()
         # print [str(f) for f in self.context.database.entries]
 
-        # self.context.opener.open(
-        #     self.context.database.daily_entry()
-        # )
+        self.context.opener.open(
+            self.context.database.daily_entry()
+        )
 
 
 def empty_fixture_path():
