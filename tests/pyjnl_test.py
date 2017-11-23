@@ -3,7 +3,7 @@ import sys
 import datetime
 import random
 import os
-
+import re
 
 class Settings(object):
     def __init__(self, context):
@@ -21,8 +21,8 @@ class Database(object):
 
     def path(self, *subdirs):
         out = os.path.join(self.context.settings.dbdir(), *subdirs)
-        print "out = %s subdirs = %s" % (out, subdirs)
-        if not os.path.isdir(out):
+        # print "out = %s subdirs = %s" % (out, subdirs)
+        if not os.path.exists(out):
             os.path.makdedirs(path)
         return out
 
@@ -31,16 +31,76 @@ class Database(object):
         if self._entries is None:
             mypath = self.path('worklogs')
             self._entries = [
-                Entry(context=self.context, file_name=f)
+                Entry(context=self.context, file_name=f, path=mypath)
                 for f in os.listdir(mypath)
                 if os.path.isfile(os.path.join(mypath, f))
             ]
         return self._entries
 
+class Tag(object):
+    def __init__(self, re_match):
+        self._name = re_match.group(1).strip()
+        self._value = re_match.group(2)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def value(self):
+        return self._value
+
+    def __str__(self):
+        return "@%s%s" % (
+            self.name,
+            "(" + self.value + ")" if self.value is not None else ''
+        )
+
+
 class Entry(object):
-    def __init__(self, context, file_name):
+    def __init__(self, context, file_name, path):
         self.context = context
         self.file_name = file_name
+        self.path = path
+        self._tags = None
+
+    def file_path(self):
+        return os.path.join(self.path, self.file_name)
+
+    TAG_RE = re.compile(r"""
+    .*
+        @
+            (               # group 1: tag name
+                [^(]+       # anything other than (
+            )
+        (?:                 # non-grouping
+            \(              # literal paren
+                (           # group 2: tag value
+                    [^)]*   # anything other than )
+                )
+            \)
+        )?
+    .*
+    """, re.X)
+
+    @property
+    def tags(self):
+        if self._tags is None:
+            tags = []
+            with open(self.file_path()) as f:
+                for line in f:
+                    re_match = Entry.TAG_RE.match(line)
+                    if re_match:
+                        tag = Tag(re_match)
+                        tags.append(tag)
+                        if tag.name == 'noscan':
+                            break
+            self._tags = tags
+        return self._tags
+
+    def __str__(self):
+        return "%s: %s" % (self.file_name, [str(t) for t in self.tags])
+
 
 class Opener(object):
     def __init__(self, context):
@@ -102,7 +162,7 @@ class Main(object):
     def daily(self, argv):
         print self.context.what_day_is_it.yyyymmdd()
         print self.context.guid_generator.guid()
-        print self.context.database.entries
+        print [str(f) for f in self.context.database.entries]
 
 
 def empty_fixture_path():
