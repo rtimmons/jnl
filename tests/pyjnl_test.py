@@ -2,6 +2,8 @@ import os
 import sys
 import datetime
 import random
+import os
+
 
 class Settings(object):
     def __init__(self, context):
@@ -14,9 +16,31 @@ class Database(object):
     def __init__(self, context):
         self.context = context
 
+        self._entries = None
+        """Use .entries instead of _entries to ensure it's initialized"""
+
+    def path(self, *subdirs):
+        out = os.path.join(self.context.settings.dbdir(), *subdirs)
+        print "out = %s subdirs = %s" % (out, subdirs)
+        if not os.path.isdir(out):
+            os.path.makdedirs(path)
+        return out
+
+    @property
+    def entries(self):
+        if self._entries is None:
+            mypath = self.path('worklogs')
+            self._entries = [
+                Entry(context=self.context, file_name=f)
+                for f in os.listdir(mypath)
+                if os.path.isfile(os.path.join(mypath, f))
+            ]
+        return self._entries
+
 class Entry(object):
-    def __init__(self, context):
+    def __init__(self, context, file_name):
         self.context = context
+        self.file_name = file_name
 
 class Opener(object):
     def __init__(self, context):
@@ -78,6 +102,7 @@ class Main(object):
     def daily(self, argv):
         print self.context.what_day_is_it.yyyymmdd()
         print self.context.guid_generator.guid()
+        print self.context.database.entries
 
 
 def empty_fixture_path():
