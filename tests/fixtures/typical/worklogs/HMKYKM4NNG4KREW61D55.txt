@@ -1,0 +1,5 @@
+This is a sample entry
+
+My Reference: HMKYKM4NNG4KREW61D55  
+@quick(entry-one-one)
+@quick(entry-one-two)
