@@ -61,6 +61,12 @@ class Database(object):
             )]
         return existing[0]
 
+    def scan(self):
+        listeners = self.context.entry_listeners
+        for entry in self.entries:
+            for listener in listeners:
+                listener.on_entry(entry)
+
 class Tag(object):
 
     TAG_RE = re.compile(r"""
@@ -205,9 +211,73 @@ class Opener(object):
             entry.file_path(),
         ])
 
+class SetsOpenWith(object):
+    def __init__(self, context):
+        self.context = context
+
+    """The xattr controlling the "Open With" functionality is unfortunately binary.
+    To use a different application, use `xattr -l`
+
+        $ xattr -l $FILE
+        com.apple.LaunchServices.OpenWith:
+        00000000  62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57  |bplist00.......W|
+        00000010  76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62  |versionTpath_..b|
+        00000020  75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10  |undleidentifier.|
+        00000030  00 5F 10 1D 2F 41 70 70 6C 69 63 61 74 69 6F 6E  |._../Application|
+        00000040  73 2F 46 6F 6C 64 69 6E 67 54 65 78 74 2E 61 70  |s/FoldingText.ap|
+        00000050  70 5F 10 1B 63 6F 6D 2E 66 6F 6C 64 69 6E 67 74  |p_..com.foldingt|
+        00000060  65 78 74 2E 46 6F 6C 64 69 6E 67 54 65 78 74 08  |ext.FoldingText.|
+        00000070  0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00  |.../1Q..........|
+        00000080  00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00  |................|
+        00000090  00 00 00 00 00 6F                                |.....o|
+        00000096
+
+    or with `-px`:
+
+        $ xattr -px com.apple.LaunchServices.OpenWith $FILE
+        62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57
+        76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62
+        75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10
+        00 5F 10 1D 2F 41 70 70 6C 69 63 61 74 69 6F 6E
+        73 2F 46 6F 6C 64 69 6E 67 54 65 78 74 2E 61 70
+        70 5F 10 1B 63 6F 6D 2E 66 6F 6C 64 69 6E 67 74
+        65 78 74 2E 46 6F 6C 64 69 6E 67 54 65 78 74 08
+        0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00
+        00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 6F
+
+    TODO: better support for an arbitrary application that doesn't require the user to modify the source :)
+    """
+
+    OPEN_WITH_ATTR = '''
+        62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57
+        76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62
+        75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10
+        00 5F 10 1D 2F 41 70 70 6C 69 63 61 74 69 6F 6E
+        73 2F 46 6F 6C 64 69 6E 67 54 65 78 74 2E 61 70
+        70 5F 10 1B 63 6F 6D 2E 66 6F 6C 64 69 6E 67 74
+        65 78 74 2E 46 6F 6C 64 69 6E 67 54 65 78 74 08
+        0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00
+        00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 6F
+    '''
+
+    def on_entry(self, entry):
+        if not entry.has_tag('ft', None):
+            return
+
+        subprocess.check_call([
+            'xattr', '-wx', 'com.apple.LaunchServices.OpenWith',
+            SetsOpenWith.OPEN_WITH_ATTR,
+            entry.file_path()
+        ])
+
 class Symlinker(object):
     def __init__(self, context):
         self.context = context
+
+    def on_entry(self, entry):
+        pass
 
 class WhatDayIsIt(object):
     def __init__(self, context):
@@ -237,11 +307,16 @@ class Context(object):
     def __init__(self, environment):
         self.environment = environment
         self.opener = Opener(self)
+        self.sets_open_with = SetsOpenWith(self)
         self.what_day_is_it = WhatDayIsIt(self)
         self.guid_generator = GuidGenerator(self)
         self.symlinker = Symlinker(self)
         self.settings = Settings(self)
         self.database = Database(self)
+        self.entry_listeners = [
+            self.sets_open_with,
+            self.symlinker,
+        ]
 
     def __str__(self):
         return "Context()"
@@ -256,6 +331,11 @@ class Main(object):
         # print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
         if argv[1] == 'daily':
             self.daily(argv)
+        if argv[1] == 'scan':
+            self.scan(argv)
+
+    def scan(self, argv):
+        self.context.database.scan()
 
     def daily(self, argv):
         pass
@@ -264,9 +344,8 @@ class Main(object):
         # print "Daily: %s" % self.context.database.daily_entry()
         # print [str(f) for f in self.context.database.entries]
 
-        self.context.opener.open(
-            self.context.database.daily_entry()
-        )
+        daily = self.context.database.daily_entry()
+        self.context.opener.open(daily)
 
 
 def empty_fixture_path():
