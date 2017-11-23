@@ -4,6 +4,8 @@ import datetime
 import random
 import os
 import re
+import subprocess
+
 
 class Settings(object):
     def __init__(self, context):
@@ -36,6 +38,25 @@ class Database(object):
                 if os.path.isfile(os.path.join(mypath, f))
             ]
         return self._entries
+
+    def create_entry(self, tags):
+        """See Entry.create() for semantics of tags"""
+        entry = Entry.create(tags)
+        self._entries.append(entry)
+        return entry
+
+    def entries_with_tag(self, name, value):
+        return [e for e in self.entries if e.has_tag(name, value)]
+
+    def daily_entry(self, yyyymmdd = None):
+        if yyyymmdd is None:
+            yyyymmdd = self.context.what_day_is_it.yyyymmdd()
+        existing = self.entries_with_tag('daily', yyyymmdd)
+        if existing is None or existing == []:
+            existing = self.create_entry(
+                tags=[('daily', yyyymmdd)]
+            )
+        return existing
 
 class Tag(object):
 
@@ -93,6 +114,13 @@ class Entry(object):
     def file_path(self):
         return os.path.join(self.path, self.file_name)
 
+    @staticmethod
+    def create(tags):
+        return {}
+        # TODO: write file and set tags
+        # return Entry(context = None,
+        #              file_name = None,
+        #              path = None)
 
     @property
     def tags(self):
@@ -107,6 +135,12 @@ class Entry(object):
             self._tags = [t for t in tags if t is not None]
         return self._tags
 
+    def has_tag(self, name, val):
+        return any([
+            t.name == name and t.value == val 
+            for t in self.tags
+        ])
+
     def __str__(self):
         return "%s: %s" % (self.file_name, [str(t) for t in self.tags])
 
@@ -114,6 +148,12 @@ class Entry(object):
 class Opener(object):
     def __init__(self, context):
         self.context = context
+
+    def open(self, entry):
+        subprocess.call(
+            'open', '-a', 'FoldingText',
+            entry.file_path
+        )
 
 class Symlinker(object):
     def __init__(self, context):
@@ -171,7 +211,12 @@ class Main(object):
     def daily(self, argv):
         print self.context.what_day_is_it.yyyymmdd()
         print self.context.guid_generator.guid()
+        self.context.database.daily_entry()
         print [str(f) for f in self.context.database.entries]
+
+        self.context.opener.open(
+            self.context.database.daily_entry()            
+        )
 
 
 def empty_fixture_path():
