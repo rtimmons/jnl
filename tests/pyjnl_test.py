@@ -36,6 +36,7 @@ class Database(object):
                 Entry(context=self.context, file_name=f, path=mypath)
                 for f in os.listdir(mypath)
                 if os.path.isfile(os.path.join(mypath, f))
+                and Entry.valid_file_name(f)
             ]
         return self._entries
 
@@ -119,6 +120,10 @@ class Entry(object):
         $
     """, re.X)
 
+    @staticmethod
+    def valid_file_name(file_name):
+        return Entry.FILENAME_RE.match(file_name)
+
     def __init__(self,
                  context,
                  path = None,
@@ -133,6 +138,9 @@ class Entry(object):
                 guid = self.context.guid_generator.guid()
             else:
                 match = Entry.FILENAME_RE.match(file_name)
+                if match is None:
+                    print "file_name mismatch %s" % file_name
+                    raise ValueError
                 guid = match.group(1).strip()
                 if match is None:
                     raise ValueError
