@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+# TODO: this is broken but only a little bit so
+
 use strict;
 use warnings;
 
