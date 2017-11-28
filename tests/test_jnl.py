@@ -104,4 +104,51 @@ class TestDatabase(unittest.TestCase):
 
         assert another_daily is not daily
 
-    
+    class MockSystem(object):
+        def __init__(self, root, files = {}):
+            self.files = files
+            self.calls = []
+            self.root = root
+            self.when_called = None
+
+        def _rmroot(self, path):
+            return path.replace(self.root, 'root')
+
+        def when_called(call, then_return):
+            self.when_called = then_return
+
+        def exists(self, path):
+            return path in self.files
+
+        def makedirs(self, *path):
+            self.files[self._rmroot(os.path.join(*path))] = ('dir')
+
+        def symlink(self, source, link_name):
+            self.files[self._rmroot(link_name)] = ('symlink', self._rmroot(source))
+
+        def check_call(self, cmd):
+            self.calls.append(cmd)
+            return self.when_called
+
+    def test_creates_symlinks(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+        msys = TestDatabase.MockSystem(jnl_dir)
+        main.context.system = msys
+
+        main.context.database.scan()
+
+        assert msys.files == {
+            'root/quick': 'dir',
+            'root/quick/entry-one-one.txt': ('symlink',
+                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/entry-one-two.txt': ('symlink',
+                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/example-tag.txt': ('symlink',
+                                           'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
+            'root/quick/tickets': 'dir',
+            'root/quick/tickets/PERF-1188.txt': ('symlink',
+                                                 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/worklogs': 'dir'
+        }
+
+
