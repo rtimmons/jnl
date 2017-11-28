@@ -128,6 +128,14 @@ Below is from a python fork I worked on over a weekend.
 
 captain&#39;s logs
 
+## What's Left
+
+- remove old `@quick` symlinks that are no longer valid
+- move to proper module
+- create bin sub to call into module
+- steal automated tests from the perl version
+
+
 ## Requirements
 
 Works for me on Mac OS X 10.13.1. But it's just python.
