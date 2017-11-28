@@ -4,6 +4,8 @@
 
 Actual code is implemented in ugly untested Perl because the code is stupid simple. Important thing is the idea here 💃
 
+TODO: not accurate any more now that we're Python.
+
 ## Overview and Installation
 
     cd ..wherever-you-keep-your-projects..
@@ -111,3 +113,53 @@ Don't keep your db folder in here, create a new git repo for it. I like to use `
 If you setup a git repo for your db, the `jnl commit` command will "autopush" your journal with a generated commit message. I don't find there's value in commit messages for these files. If you do, you can always commit like usual.
 
 I like to create a "backup" remote on an external drive and set it up to mirror my local journal repo. So I can just do `git push backup`.
+
+<!--
+[![Build Status][travis-img]][travis-url]
+[![Coverage Status][coverall-img]][coverall-url]
+[![Codacy Badge][codacy-image]][codacy-url]
+-->
+
+----------------------------------------
+
+Below is from a python fork I worked on over a weekend.
+
+# Pyjnl
+
+captain&#39;s logs
+
+## Requirements
+
+- Python 2.7.10+
+
+## Setup
+
+To automatically install virtualenv and create a new venv,
+use the provided setup script:
+
+```
+. ./setup.sh -p python2.7.10
+```
+
+Otherwise
+
+## Test
+
+```
+py.test -v -s --cov-report term-missing --cov=pyjnl -r w tests
+```
+
+
+## License
+
+MIT
+
+
+<!--
+[travis-img]: https://travis-ci.org/rtimmons/pyjnl.svg?branch=master
+[travis-url]: https://travis-ci.org/rtimmons/pyjnl
+[coverall-img]: https://coveralls.io/repos/github/rtimmons/pyjnl/badge.svg?branch=master
+[coverall-url]: https://coveralls.io/github/rtimmons/pyjnl?branch=master
+[codacy-image]: https://api.codacy.com/project/badge/Grade/ce0ad20ca59947af86b0f17a5779c804
+[codacy-url]: https://www.codacy.com/app/rtimmons/pyjnl?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rtimmons/pyjnl&amp;utm_campaign=Badge_Grade
+-->
