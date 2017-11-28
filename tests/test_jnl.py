@@ -71,7 +71,7 @@ class TestDatabase(unittest.TestCase):
         main.context.what_day_is_it = what_day_is_it
         return what_day_is_it
 
-    def test_daily_entry(self):
+    def test_creates_daily_entry(self):
         main, jnl_dir = self.main_with_fixture('typical')
         self.mock_what_day_is_it(main)
 
@@ -87,3 +87,21 @@ class TestDatabase(unittest.TestCase):
             '@quick(daily/2009-11-28)'
         )
 
+    def test_uses_existing_daily_entry(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+        self.mock_what_day_is_it(main)
+
+        daily = main.context.database.daily_entry()
+        entries = main.context.database.entries
+        assert len(entries) == 3
+
+        another = jnl.Main({'JNL_DIR': jnl_dir})
+        self.mock_what_day_is_it(another)
+
+        assert len(another.context.database.entries) == 3
+        another_daily = another.context.database.daily_entry()
+        assert another_daily.guid == daily.guid
+
+        assert another_daily is not daily
+
+    
