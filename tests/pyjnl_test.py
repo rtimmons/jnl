@@ -54,10 +54,14 @@ class Database(object):
     def daily_entry(self, yyyymmdd = None):
         if yyyymmdd is None:
             yyyymmdd = self.context.what_day_is_it.yyyymmdd()
-        existing = self.entries_with_tag('daily', yyyymmdd)
+        tag_val = 'daily/%s' % yyyymmdd
+        existing = self.entries_with_tag('quick', tag_val)
         if existing == []:
             existing = [self.create_entry(
-                tags=[Tag(name='daily', value=yyyymmdd)]
+                tags=[
+                    Tag(name='quick', value=tag_val),
+                    Tag(name='ft')
+                ]
             )]
         return existing[0]
 
@@ -353,14 +357,9 @@ class Main(object):
         self.context.database.scan()
 
     def daily(self, argv):
-        pass
-        # print self.context.what_day_is_it.yyyymmdd()
-        # print self.context.guid_generator.guid()
-        # print "Daily: %s" % self.context.database.daily_entry()
-        # print [str(f) for f in self.context.database.entries]
-
-        # daily = self.context.database.daily_entry()
-        # self.context.opener.open(daily)
+        daily = self.context.database.daily_entry()
+        self.context.opener.open(daily)
+        self.context.database.scan()
 
 
 def empty_fixture_path():
