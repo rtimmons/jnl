@@ -47,3 +47,29 @@ class TestDatabase(unittest.TestCase):
         guids = [e.guid for e in entries]
         assert guids == ['HMKYKM4NNG4KREW61D55', 'W5BNE202WYF031H7J3RY']
 
+    def test_entries_with_tags(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+
+        with_tag = main.context.database.entries_with_tag('quick', 'tickets/PERF-1188')
+        assert len(with_tag) == 1
+        assert with_tag[0].guid == 'HMKYKM4NNG4KREW61D55'
+        assert set([str(t) for t in with_tag[0].tags]) == set([
+            '@ft',
+            '@quick(tickets/PERF-1188)',
+            '@quick(entry-one-one)',
+            '@quick(entry-one-two)'
+        ])
+
+    def test_daily_entry(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+
+        what_day_is_it = mock.MagicMock()
+        what_day_is_it.yyyymmdd.return_value = '2009-11-28'
+        main.context.what_day_is_it = mock.MagicMock()
+
+        daily = main.context.database.daily_entry()
+        entries = main.context.database.entries
+        assert len(entries) == 3
+        # TODO: assert tags
+
+
