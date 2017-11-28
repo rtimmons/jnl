@@ -1,5 +1,7 @@
 This is a sample entry
 
+@ft
 My Reference: HMKYKM4NNG4KREW61D55  
+@quick(tickets/PERF-1188)
 @quick(entry-one-one)
 @quick(entry-one-two)

@@ -169,6 +169,9 @@ class Entry(object):
     def file_path(self):
         return os.path.join(self.path, self.file_name)
 
+    def file_extension(self):
+        return self.file_name.split('.')[-1]
+
     def _create(self):
         with open(self.file_path(), 'w+') as f:
             f.write('\n' * 4)
@@ -277,8 +280,19 @@ class Symlinker(object):
         self.context = context
 
     def on_entry(self, entry):
-        vals = [t.value for t in entry.tags if t.name  == 'quick']
-        print(",".join(vals))
+        vals = [t.value for t in entry.tags if t.name == 'quick']
+        for val in vals:
+            parts = val.split('/')
+            dir_parts = parts[:-1]
+            fname_part = "%s.%s" % (parts[-1], entry.file_extension())
+            into_dir = self.context.database.path('quick', *dir_parts)
+            symlink = os.path.join(into_dir, fname_part)
+            if os.path.exists(symlink):
+                if os.readlink(symlink) == entry.file_path():
+                    # job already done
+                    continue
+                os.unlink(symlink)
+            os.symlink(entry.file_path(), symlink)
 
 class WhatDayIsIt(object):
     def __init__(self, context):
