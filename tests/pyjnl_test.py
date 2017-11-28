@@ -23,9 +23,9 @@ class Database(object):
 
     def path(self, *subdirs):
         out = os.path.join(self.context.settings.dbdir(), *subdirs)
-        # print "out = %s subdirs = %s" % (out, subdirs)
+        # print("out = %s subdirs = %s" % (out, subdirs))
         if not os.path.exists(out):
-            os.path.makdedirs(path)
+            os.makedirs(out)
         return out
 
     @property
@@ -145,7 +145,7 @@ class Entry(object):
             else:
                 match = Entry.FILENAME_RE.match(file_name)
                 if match is None:
-                    print "file_name mismatch %s" % file_name
+                    print("file_name mismatch %s" % file_name)
                     raise ValueError
                 guid = match.group(1).strip()
                 if match is None:
@@ -277,7 +277,8 @@ class Symlinker(object):
         self.context = context
 
     def on_entry(self, entry):
-        pass
+        vals = [t.value for t in entry.tags if t.name  == 'quick']
+        print(",".join(vals))
 
 class WhatDayIsIt(object):
     def __init__(self, context):
@@ -344,8 +345,8 @@ class Main(object):
         # print "Daily: %s" % self.context.database.daily_entry()
         # print [str(f) for f in self.context.database.entries]
 
-        daily = self.context.database.daily_entry()
-        self.context.opener.open(daily)
+        # daily = self.context.database.daily_entry()
+        # self.context.opener.open(daily)
 
 
 def empty_fixture_path():

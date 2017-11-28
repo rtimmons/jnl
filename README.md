@@ -139,6 +139,7 @@ Works for me on Mac OS X 10.13.1. But it's just python.
 xcode-select --install
 
 brew install openssl
+brew install python3
 
 # follow steps to install pyenv https://github.com/pyenv/pyenv
 brew install pyenv
@@ -150,6 +151,9 @@ CFLAGS="-I$(brew --prefix openssl)/include" \
     pyenv install -v 2.7.10
 
 pip install -r requirements.txt
+
+# something, something, something to install virtualenv
+virtualenv -p python3 envname
 ```
 
 Then restart your shell (what is this, windows?!).
@@ -158,6 +162,8 @@ Then restart your shell (what is this, windows?!).
 ## Test
 
 ```
+JNL_DIR=$PWD/tests/fixtures/typical python ./tests/pyjnl_test.py scan
+
 py.test -v -s --cov-report term-missing --cov=pyjnl -r w tests
 ```
 
