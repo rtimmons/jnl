@@ -26,8 +26,8 @@ class Database(object):
     def path(self, *subdirs):
         out = os.path.join(self.context.settings.dbdir(), *subdirs)
         # print("out = %s subdirs = %s" % (out, subdirs))
-        if not os.path.exists(out):
-            os.makedirs(out)
+        if not self.context.system.exists(out):
+            self.context.system.makedirs(out)
         return out
 
     @property
@@ -49,6 +49,9 @@ class Database(object):
                       create=True)
         self._entries.append(entry)
         return entry
+
+    def entry_with_guid(self, guid):
+        return [e for e in self.entries if e.guid == guid][0]
 
     def entries_with_tag(self, name, value):
         return [e for e in self.entries if e.has_tag(name, value)]
@@ -215,7 +218,7 @@ class Opener(object):
         self.context = context
 
     def open(self, entry):
-        subprocess.check_call([
+        return self.context.system.check_call([
             'open', '-a', 'FoldingText',
             entry.file_path(),
         ])
@@ -275,11 +278,33 @@ class SetsOpenWith(object):
         if not entry.has_tag('ft', None):
             return
 
-        subprocess.check_call([
+        return self.context.system.check_call([
             'xattr', '-wx', 'com.apple.LaunchServices.OpenWith',
             SetsOpenWith.OPEN_WITH_ATTR,
             entry.file_path()
         ])
+
+class System(object):
+    def __init__(self, context):
+        self.context = context
+
+    def makedirs(self,*args):
+        return os.makedirs(*args)
+
+    def check_call(self, *args):
+        subprocess.check_call(*args)
+
+    def exists(self, path):
+        return os.path.exists(path)
+
+    def readlink(self, path):
+        return os.readlink(symlink)
+    
+    def symlink(self, src, dest):
+        return os.symlink(src, dest)
+
+    def unlink(self, path):
+        return os.unlink(path)
 
 class Symlinker(object):
     def __init__(self, context):
@@ -327,6 +352,7 @@ class GuidGenerator(object):
 class Context(object):
     def __init__(self, environment):
         self.environment = environment
+        self.system = System(self)
         self.opener = Opener(self)
         self.sets_open_with = SetsOpenWith(self)
         self.what_day_is_it = WhatDayIsIt(self)
@@ -348,12 +374,19 @@ class Main(object):
             environment = os.environ
         self.context = Context(environment = environment)
 
+    def open(self, argv):
+        self.context.opener.open(
+            self.context.database.entry_with_guid(argv[2])
+        )
+
     def run(self, argv):
         # print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
         if argv[1] == 'daily':
             self.daily(argv)
         if argv[1] == 'scan':
             self.scan(argv)
+        if argv[1] == 'open':
+            self.open(argv)
 
     def scan(self, argv):
         self.context.database.scan()
