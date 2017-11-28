@@ -1,3 +1,4 @@
+import random
 import sys
 import os
 import shutil
@@ -26,12 +27,13 @@ class TestDatabase(unittest.TestCase):
         return jnl.Main({'JNL_DIR': jnl_dir}), jnl_dir
 
     def setUp(self):
+        random.seed(100)
         self.to_cleanup = []
 
     def tearDown(self):
         for c in self.to_cleanup:
             print "Cleaning up %s" % c
-            shutil.rmtree(c)
+            # shutil.rmtree(c)
 
     def test_path(self):
         main, jnl_dir = self.main_with_fixture('typical')
@@ -53,23 +55,35 @@ class TestDatabase(unittest.TestCase):
         with_tag = main.context.database.entries_with_tag('quick', 'tickets/PERF-1188')
         assert len(with_tag) == 1
         assert with_tag[0].guid == 'HMKYKM4NNG4KREW61D55'
-        assert set([str(t) for t in with_tag[0].tags]) == set([
+        self.has_tags(with_tag[0], 
             '@ft',
             '@quick(tickets/PERF-1188)',
             '@quick(entry-one-one)',
             '@quick(entry-one-two)'
-        ])
+        )
+
+    def has_tags(self, entry, *tags):
+        assert set([str(t) for t in entry.tags]) == set(tags)
+
+    def mock_what_day_is_it(self, main):
+        what_day_is_it = mock.MagicMock()
+        what_day_is_it.yyyymmdd.return_value = '2009-11-28'
+        main.context.what_day_is_it = what_day_is_it
+        return what_day_is_it
 
     def test_daily_entry(self):
         main, jnl_dir = self.main_with_fixture('typical')
-
-        what_day_is_it = mock.MagicMock()
-        what_day_is_it.yyyymmdd.return_value = '2009-11-28'
-        main.context.what_day_is_it = mock.MagicMock()
+        self.mock_what_day_is_it(main)
 
         daily = main.context.database.daily_entry()
         entries = main.context.database.entries
         assert len(entries) == 3
-        # TODO: assert tags
 
+        with_tag = main.context.database.entries_with_tag('quick', 'daily/2009-11-28')
+        assert len(with_tag) == 1
+        assert with_tag[0].guid == '4ERPQDSH2E1XYA9R656B' # guaranteed cuz we set random.seed
+        self.has_tags(with_tag[0],
+            '@ft',
+            '@quick(daily/2009-11-28)'
+        )
 
