@@ -15,25 +15,35 @@ fixture_dir = os.path.join(bin_dir, '..', 'tests', 'fixtures')
 
 class TestDatabase(unittest.TestCase):
 
-    def main_with_fixture(self, fixture='typical'):
-        fixture_path = os.path.join(fixture_dir, fixture)
-        tmpdir = tempfile.mkdtemp()
-        subdir = os.path.join(tmpdir, fixture)
-        print "Copy %s -> %s" % (fixture_path, subdir)
-        shutil.copytree(fixture_path, subdir)
-        self.to_cleanup.append(tmpdir)
-        return jnl.Main({'JNL_DIR': subdir}), tmpdir
+    def main_with_fixture(self, fixture_name='typical'):
+        source_fixture = os.path.join(fixture_dir, fixture_name)
+
+        tmp_dir = tempfile.mkdtemp()
+        jnl_dir = os.path.join(tmp_dir, fixture_name)
+        shutil.copytree(source_fixture, jnl_dir)
+
+        self.to_cleanup.append(tmp_dir)
+        return jnl.Main({'JNL_DIR': jnl_dir}), jnl_dir
 
     def setUp(self):
         self.to_cleanup = []
-        pass
 
     def tearDown(self):
         for c in self.to_cleanup:
             print "Cleaning up %s" % c
             shutil.rmtree(c)
 
-    def test_create_entry(self):
-        main, nl = self.main_with_fixture('typical')
-        print main.context.database.path()
+    def test_path(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+        assert main.context.database.path() == jnl_dir
+
+        assert os.path.exists(main.context.database.path('quick'))
+        assert os.path.exists(main.context.database.path('quick', 'something_we_create_now'))
+
+    def test_list_entries(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+        entries = main.context.database.entries
+        assert len(entries) == 2
+        guids = [e.guid for e in entries]
+        assert guids == ['HMKYKM4NNG4KREW61D55', 'W5BNE202WYF031H7J3RY']
 
