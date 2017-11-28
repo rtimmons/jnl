@@ -298,7 +298,7 @@ class System(object):
         return os.path.exists(path)
 
     def readlink(self, path):
-        return os.readlink(symlink)
+        return os.readlink(path)
     
     def symlink(self, src, dest):
         return os.symlink(src, dest)
@@ -318,12 +318,12 @@ class Symlinker(object):
             fname_part = "%s.%s" % (parts[-1], entry.file_extension())
             into_dir = self.context.database.path('quick', *dir_parts)
             symlink = os.path.join(into_dir, fname_part)
-            if os.path.exists(symlink):
-                if os.readlink(symlink) == entry.file_path():
+            if self.context.system.exists(symlink):
+                if self.context.system.readlink(symlink) == entry.file_path():
                     # job already done
                     continue
-                os.unlink(symlink)
-            os.symlink(entry.file_path(), symlink)
+                self.context.system.unlink(symlink)
+            self.context.system.symlink(entry.file_path(), symlink)
 
 class WhatDayIsIt(object):
     def __init__(self, context):
