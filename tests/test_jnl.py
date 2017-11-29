@@ -118,7 +118,7 @@ class TestDatabase(unittest.TestCase):
             self.when_called = then_return
 
         def exists(self, path):
-            return path in self.files
+            return self._rmroot(path) in self.files
 
         def makedirs(self, *path):
             self.files[self._rmroot(os.path.join(*path))] = ('dir')
@@ -129,6 +129,13 @@ class TestDatabase(unittest.TestCase):
         def check_call(self, cmd):
             self.calls.append(cmd)
             return self.when_called
+
+        def rmtree(self, to_remove):
+            to_remove = self._rmroot(to_remove)
+            self.files = {
+                k:v for k,v in self.files.iteritems()
+                if not k.startswith(to_remove)
+            }
 
     def test_creates_symlinks(self):
         main, jnl_dir = self.main_with_fixture('typical')
@@ -151,4 +158,29 @@ class TestDatabase(unittest.TestCase):
             'root/worklogs': 'dir'
         }
 
+    def test_creates_symlinks_removes_others(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+        msys = TestDatabase.MockSystem(jnl_dir)
+        main.context.system = msys
 
+        msys.files = {
+            'root/quick': 'dir',
+            'root/quick/some-other-thing-that-we-should-remove.txt': ('symlink',
+                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+        }
+
+        main.context.database.scan()
+
+        assert msys.files == {
+            'root/quick': 'dir',
+            'root/quick/entry-one-one.txt': ('symlink',
+                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/entry-one-two.txt': ('symlink',
+                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/example-tag.txt': ('symlink',
+                                           'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
+            'root/quick/tickets': 'dir',
+            'root/quick/tickets/PERF-1188.txt': ('symlink',
+                                                 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/worklogs': 'dir'
+        }

@@ -7,7 +7,7 @@ import random
 import os
 import re
 import subprocess
-
+import shutil
 
 class Settings(object):
     def __init__(self, context):
@@ -229,6 +229,7 @@ class Opener(object):
 class NopListener(object):
     def __init__(self, context):
         self.context = context
+
     def on_entry(self, entry):
         pass
     def on_pre_scan(self):
@@ -319,10 +320,10 @@ class System(object):
     def unlink(self, path):
         return os.unlink(path)
 
-class Symlinker(NopListener):
-    def __init__(self, context):
-        self.context = context
+    def rmtree(self,path):
+        return shutil.rmtree(path)
 
+class Symlinker(NopListener):
     def on_entry(self, entry):
         vals = [t.value for t in entry.tags if t.name == 'quick']
         for val in vals:
@@ -337,6 +338,13 @@ class Symlinker(NopListener):
                     continue
                 self.context.system.unlink(symlink)
             self.context.system.symlink(entry.file_path(), symlink)
+
+class PreScanQuickCleaner(NopListener):
+    def on_pre_scan(self):
+        path = self.context.database.path('quick')
+        print("Trying to clean %s" % path)
+        if self.context.system.exists(path):
+            self.context.system.rmtree(path)
 
 class WhatDayIsIt(object):
     def __init__(self, context):
@@ -371,11 +379,13 @@ class Context(object):
         self.what_day_is_it = WhatDayIsIt(self)
         self.guid_generator = GuidGenerator(self)
         self.symlinker = Symlinker(self)
+        self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
         self.database = Database(self)
         self.entry_listeners = [
             self.sets_open_with,
             self.symlinker,
+            self.pre_scan_quick_cleaner
         ]
 
     def __str__(self):
