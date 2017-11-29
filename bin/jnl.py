@@ -72,9 +72,13 @@ class Database(object):
 
     def scan(self):
         listeners = self.context.entry_listeners
+        for listener in listeners:
+            listener.on_pre_scan()
         for entry in self.entries:
             for listener in listeners:
                 listener.on_entry(entry)
+        for listener in listeners:
+            listener.on_post_scan()
 
 class Tag(object):
 
@@ -118,7 +122,7 @@ class Tag(object):
     def value(self):
         return self._value
 
-    def __str__(self):
+    def __repr__(self):
         return "@%s%s" % (
             self.name,
             "(" + self.value + ")" if self.value is not None else ''
@@ -188,7 +192,6 @@ class Entry(object):
             for tag in self.tags:
                 f.write(str(tag))
                 f.write('  \n')
-            print("Created %s" % self.file_path())
 
     @property
     def tags(self):
@@ -209,8 +212,8 @@ class Entry(object):
             for t in self.tags
         )
 
-    def __str__(self):
-        return "%s: %s" % (self.file_name, [str(t) for t in self.tags])
+    def __repr__(self):
+        return "%s: %s" % (self.file_name, self.tags)
 
 
 class Opener(object):
@@ -223,7 +226,17 @@ class Opener(object):
             entry.file_path(),
         ])
 
-class SetsOpenWith(object):
+class NopListener(object):
+    def __init__(self, context):
+        self.context = context
+    def on_entry(self, entry):
+        pass
+    def on_pre_scan(self):
+        pass
+    def on_post_scan(self):
+        pass
+
+class SetsOpenWith(NopListener):
     def __init__(self, context):
         self.context = context
 
@@ -306,7 +319,7 @@ class System(object):
     def unlink(self, path):
         return os.unlink(path)
 
-class Symlinker(object):
+class Symlinker(NopListener):
     def __init__(self, context):
         self.context = context
 
