@@ -49,7 +49,7 @@ class Database(object):
         entry = Entry(context=self.context,
                       tags=tags,
                       create=True)
-        self._entries.append(entry)
+        self.entries.append(entry)
         return entry
 
     def entry_with_guid(self, guid):
@@ -344,10 +344,12 @@ class Symlinker(NopListener):
             into_dir = self.context.database.path('quick', *dir_parts)
             symlink = os.path.join(into_dir, fname_part)
             if self.context.system.exists(symlink):
-                if self.context.system.readlink(symlink) == entry.file_path():
+                existing = self.context.system.readlink(symlink)
+                if existing == entry.file_path():
                     # job already done
                     continue
-                self.context.system.unlink(symlink)
+                else:
+                    raise ValueError("@quick(%s) owned by %s, so %s can't take it" % (val, existing, entry.file_path()))
             self.context.system.symlink(entry.file_path(), symlink)
 
 

@@ -161,17 +161,29 @@ class TestDatabase(unittest.TestCase):
         def _rmroot(self, path):
             return path.replace(self.root, 'root')
 
-        def when_called(call, then_return):
+        def when_called(self, then_return):
             self.when_called = then_return
 
         def exists(self, path):
             return self._rmroot(path) in self.files
 
         def makedirs(self, *path):
-            self.files[self._rmroot(os.path.join(*path))] = ('dir')
+            self.files[self._rmroot(os.path.join(*path))] = ('dir') # TODO: use path as second item in tuple to be consistent
 
         def symlink(self, source, link_name):
             self.files[self._rmroot(link_name)] = ('symlink', self._rmroot(source))
+
+        def readlink(self, link):
+            _, path = self.files[self._rmroot(link)]
+            return path.replace('root', self.root, 1)
+
+        def unlink(self, path):
+            path = self._rmroot(path)
+            self.files = {
+                k:v
+                for k,v in self.files.iteritems()
+                if k == path
+            }
 
         def check_call(self, cmd):
             self.calls.append(cmd)
@@ -231,3 +243,21 @@ class TestDatabase(unittest.TestCase):
                                                  'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
             'root/worklogs': 'dir'
         }
+
+    def test_cant_create_dupe_symlinks(self):
+        main, jnl_dir = self.main_with_fixture('empty')
+        msys = TestDatabase.MockSystem(jnl_dir)
+        main.context.system = msys
+        one = main.context.database.create_entry([
+            jnl.Tag(name="quick", value="foo")
+        ])
+        two = main.context.database.create_entry([
+            jnl.Tag(name="quick", value="foo")  # same `quick` tag as `one`
+        ])
+
+        assert one is not two
+        assert one != two
+
+        with self.assertRaises(Exception) as _:
+            main.context.database.scan()
+
