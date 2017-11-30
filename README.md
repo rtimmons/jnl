@@ -40,6 +40,24 @@ There is a "Today's Worklog.app" Apple application. Copy or drag to your Applica
 To change the application for opening files, modify `jnl.pm` - see `open -a TextMate.app` for instance.
 
 <!--
+TODO:
+
+    Ignored files specified in settings
+    Change tag marker in settings
+    Change quick prefix in settings
+    Ignore files with @ignore
+    Alfred workflow (see https://www.alfredapp.com/help/workflows/)
+     Append to daily
+     Append to quick
+     Create as new wl
+     Open daily
+     Open quick
+
+    Simple UI view app like nv but better
+    Console app?
+    Bin shim copy/paste thing for root of db dir
+
+
 TODO: `jnl` wrapper script.
 TODO: OS X launcher apps "New Worklog Entry.app", "Today's Entry.app"
 TODO: generated index page for daily entries and maybe first line or two of worklog entries
