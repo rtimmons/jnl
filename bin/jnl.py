@@ -9,12 +9,14 @@ import re
 import subprocess
 import shutil
 
+
 class Settings(object):
     def __init__(self, context):
         self.context = context
 
     def dbdir(self):
         return self.context.environment['JNL_DIR']
+
 
 class Database(object):
     def __init__(self, context):
@@ -61,7 +63,7 @@ class Database(object):
             yyyymmdd = self.context.what_day_is_it.yyyymmdd()
         tag_val = 'daily/%s' % yyyymmdd
         existing = self.entries_with_tag('quick', tag_val)
-        if existing == []:
+        if not existing:
             existing = [self.create_entry(
                 tags=[
                     Tag(name='quick', value=tag_val),
@@ -79,6 +81,7 @@ class Database(object):
                 listener.on_entry(entry)
         for listener in listeners:
             listener.on_post_scan()
+
 
 class Tag(object):
 
@@ -133,7 +136,6 @@ class Tag(object):
 
 
 class Entry(object):
-
     FILENAME_RE = re.compile(r"""
         ^
         ([A-Z0-9]+)     # group 1: file name without extension
@@ -229,16 +231,20 @@ class Opener(object):
             entry.file_path(),
         ])
 
+
 class NopListener(object):
     def __init__(self, context):
         self.context = context
 
     def on_entry(self, entry):
         pass
+
     def on_pre_scan(self):
         pass
+
     def on_post_scan(self):
         pass
+
 
 class SetsOpenWith(NopListener):
     def __init__(self, context):
@@ -301,6 +307,7 @@ class SetsOpenWith(NopListener):
             entry.file_path()
         ])
 
+
 class System(object):
     def __init__(self, context):
         self.context = context
@@ -326,6 +333,7 @@ class System(object):
     def rmtree(self,path):
         return shutil.rmtree(path)
 
+
 class Symlinker(NopListener):
     def on_entry(self, entry):
         vals = [t.value for t in entry.tags if t.name == 'quick']
@@ -342,12 +350,14 @@ class Symlinker(NopListener):
                 self.context.system.unlink(symlink)
             self.context.system.symlink(entry.file_path(), symlink)
 
+
 class PreScanQuickCleaner(NopListener):
     def on_pre_scan(self):
         path = self.context.database.path('quick')
         print("Trying to clean %s" % path)
         if self.context.system.exists(path):
             self.context.system.rmtree(path)
+
 
 class WhatDayIsIt(object):
     def __init__(self, context):
@@ -356,6 +366,7 @@ class WhatDayIsIt(object):
     def yyyymmdd(self):
         now = datetime.datetime.now()
         return "%s-%s-%s" % (now.year, now.month, now.day)
+
 
 class GuidGenerator(object):
     def __init__(self, context):
@@ -372,6 +383,7 @@ class GuidGenerator(object):
         return "".join([
             random.choice(GuidGenerator.LETTERS) for i in range(20)
         ])
+
 
 class Context(object):
     def __init__(self, environment):
@@ -393,6 +405,7 @@ class Context(object):
 
     def __str__(self):
         return "Context()"
+
 
 class Main(object):
     def __init__(self, environment = None):
@@ -425,6 +438,7 @@ class Main(object):
 
 def empty_fixture_path():
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fixtures', 'empty')
+
 
 if __name__ == "__main__":
     main = Main({
