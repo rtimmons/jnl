@@ -15,13 +15,51 @@ import mock
 fixture_dir = os.path.join(bin_dir, '..', 'tests', 'fixtures')
 
 class TestTag(unittest.TestCase):
-    def test_parse_line(self):
-        line = "@ft @quick(a-b-c)"
+    def parses(self, line, should_have = None):
         tags = jnl.Tag.parse(line)
-        assert [str(tag) for tag in tags] == [
-            '@ft',
-            '@quick(a-b-c)'
+        if should_have is None:
+            should_have = [line]
+        assert [str(tag) for tag in tags] == should_have
+
+    def test_single_cases(self):
+        cases = [
+            "@quick",
+            "@done",
+            "@a-b-c",
+            "@quick()",
+            "@quick(foo-bar)",
+            "@quick@",
+            "@@",
+            "@_",
+            "@foo(a b)",
+            "@foo(@bar)", # odd
+            # TODO: support emoji / utf-8 tags
         ]
+        for case in cases:
+            self.parses(case)
+
+
+    def test_multi(self):
+        self.parses(
+            "@ft @quick(a-b-c)",
+            ['@ft', '@quick(a-b-c)']
+        )
+
+    def test_dupe(self):
+        self.parses(
+            # TODO: should we de-dupe or barf?
+            "@ft @ft",
+            ['@ft', '@ft']
+        )
+
+    def test_triple(self):
+        self.parses(
+            # TODO: should we de-dupe or barf?
+            "@ft @done @quick(other-foo) @abc",
+            ["@ft", "@done", "@quick(other-foo)", "@abc"]
+        )
+
+# TODO: case of multiple files saying @quick(something). A symlink can't point to 2 things.
 
 class TestDatabase(unittest.TestCase):
 
