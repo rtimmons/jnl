@@ -14,6 +14,15 @@ import mock
 
 fixture_dir = os.path.join(bin_dir, '..', 'tests', 'fixtures')
 
+class TestTag(unittest.TestCase):
+    def test_parse_line(self):
+        line = "@ft @quick(a-b-c)"
+        tags = jnl.Tag.parse(line)
+        assert [str(tag) for tag in tags] == [
+            '@ft',
+            '@quick(a-b-c)'
+        ]
+
 class TestDatabase(unittest.TestCase):
 
     def main_with_fixture(self, fixture_name='typical'):

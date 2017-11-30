@@ -83,29 +83,32 @@ class Database(object):
 class Tag(object):
 
     TAG_RE = re.compile(r"""
-    .*
         @
             (               # group 1: tag name
-                [^(]+       # anything other than (
+                [^(\s]+     # anything other than (
             )
         (?:                 # non-grouping
             \(              # literal paren
                 (           # group 2: tag value
-                    [^)]*   # anything other than )
+                    [^)]*?  # anything other than )
                 )
             \)
+            |
+            \s*?
         )?
-    .*
-    """, re.X)
+    """, re.VERBOSE)
 
     @staticmethod
     def parse(line):
-        re_match = Tag.TAG_RE.match(line)
-        if re_match:
-            tag = Tag(re_match)
-            return tag
-        else:
-            return None
+        """Return list of tags"""
+        out = []
+
+        res = Tag.TAG_RE.finditer(line)
+        if res is not None:
+            for re_match in res:
+                out.append(Tag(re_match))
+
+        return out
 
     def __init__(self, re_match = None, name = None, value = None):
         if re_match is not None:
@@ -199,9 +202,9 @@ class Entry(object):
             tags = []
             with open(self.file_path()) as f:
                 for line in f:
-                    t = Tag.parse(line)
-                    tags.append(t)
-                    if t is not None and t.name == 'noscan':
+                    on_line = Tag.parse(line)
+                    tags.extend(on_line)
+                    if [t for t in on_line if t.name == 'noscan']:
                         break
             self._tags = [t for t in tags if t is not None]
         return self._tags
