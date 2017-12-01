@@ -27,9 +27,9 @@ class Database(object):
 
     def path(self, *subdirs):
         out = os.path.join(self.context.settings.dbdir(), *subdirs)
-        # print("out = %s subdirs = %s" % (out, subdirs))
         if not self.context.system.exists(out):
             self.context.system.makedirs(out)
+        assert(self.context.system.isdir(out))
         return out
 
     @property
@@ -332,6 +332,10 @@ class System(object):
 
     def rmtree(self,path):
         return shutil.rmtree(path)
+
+    def isdir(self, path):
+        return os.path.isdir(path)
+
 
 
 class Symlinker(NopListener):

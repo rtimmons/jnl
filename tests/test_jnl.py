@@ -167,6 +167,10 @@ class TestDatabase(unittest.TestCase):
         def exists(self, path):
             return self._rmroot(path) in self.files
 
+        def isdir(self, path):
+            path = self._rmroot(path)
+            return path in self.files and self.files[path] == 'dir' # change if using tuple
+
         def makedirs(self, *path):
             self.files[self._rmroot(os.path.join(*path))] = ('dir') # TODO: use path as second item in tuple to be consistent
 
@@ -246,8 +250,6 @@ class TestDatabase(unittest.TestCase):
 
     def test_cant_create_dupe_symlinks(self):
         main, jnl_dir = self.main_with_fixture('empty')
-        msys = TestDatabase.MockSystem(jnl_dir)
-        main.context.system = msys
         one = main.context.database.create_entry([
             jnl.Tag(name="quick", value="foo")
         ])
