@@ -336,6 +336,8 @@ class System(object):
     def isdir(self, path):
         return os.path.isdir(path)
 
+    def now(self):
+        return datetime.datetime.now()
 
 
 class Symlinker(NopListener):
@@ -370,8 +372,8 @@ class WhatDayIsIt(object):
         self.context = context
 
     def yyyymmdd(self):
-        now = datetime.datetime.now()
-        return "%s-%s-%s" % (now.year, now.month, now.day)
+        now = self.context.system.now()
+        return "%04d-%02d-%02d" % (now.year, now.month, now.day)
 
 
 class GuidGenerator(object):

@@ -61,6 +61,22 @@ class TestTag(unittest.TestCase):
 
 # TODO: case of multiple files saying @quick(something). A symlink can't point to 2 things.
 
+class TestWhatDayIsIt(unittest.TestCase):
+    def test_formats_days(self):
+        now = mock.MagicMock()
+        now.year = 2017
+        now.month = 2
+        now.day = 1
+
+        context = mock.MagicMock()
+        context.system.now.return_value = now
+
+        # test of the test
+        assert context.system.now().year == 2017
+
+        what = jnl.WhatDayIsIt(context=context)
+        assert what.yyyymmdd() == '2017-02-01'
+
 class TestDatabase(unittest.TestCase):
 
     def main_with_fixture(self, fixture_name='typical'):
