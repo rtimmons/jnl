@@ -2,6 +2,9 @@
 
 from setuptools import setup
 
+# TODO: follow some examples here?
+# https://github.com/garywiz/chaperone/blob/master/setup.py
+
 setup(
     name='jnl',
     version='0.1',
