@@ -44,7 +44,7 @@ class Database(object):
             ]
         return self._entries
 
-    def create_entry(self, tags):
+    def create_entry(self, tags=[]):
         """See Entry.create() for semantics of tags"""
         entry = Entry(context=self.context,
                       tags=tags,
@@ -387,7 +387,7 @@ class GuidGenerator(object):
 
     def guid(self):
         return "".join([
-            random.choice(GuidGenerator.LETTERS) for i in range(20)
+            random.choice(GuidGenerator.LETTERS) for i in range(21)
         ])
 
 
@@ -424,8 +424,15 @@ class Main(object):
             self.context.database.entry_with_guid(argv[2])
         )
 
+    def new(self, argv):
+        self.context.opener.open(
+            self.context.database.create_entry()
+        )
+
     def run(self, argv):
         # print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
+        if argv[1] == "new":
+            self.new(argv)
         if argv[1] == 'daily':
             self.daily(argv)
         if argv[1] == 'scan':

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -eou pipefail
+
+root="$(dirname "$0")/.."
+pushd "$root" >/dev/null
+    root="$(pwd -P)"
+popd >/dev/null
+
+pushd "$root" >/dev/null
+    "$root/bin/jnl" "daily" "$@"
+popd >/dev/null

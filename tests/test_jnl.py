@@ -128,7 +128,7 @@ class TestDatabase(unittest.TestCase):
 
         with_tag = main.context.database.entries_with_tag('quick', 'daily/2009-11-28')
         assert len(with_tag) == 1
-        assert with_tag[0].guid == '4ERPQDSH2E1XYA9R656B' # guaranteed cuz we set random.seed
+        assert with_tag[0].guid == '4ERPQDSH2E1XYA9R656BM' # guaranteed cuz we set random.seed
         self.has_tags(with_tag[0],
             '@ft',
             '@quick(daily/2009-11-28)'
