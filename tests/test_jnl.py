@@ -59,7 +59,8 @@ class TestTag(unittest.TestCase):
             ["@ft", "@done", "@quick(other-foo)", "@abc"]
         )
 
-# TODO: case of multiple files saying @quick(something). A symlink can't point to 2 things.
+# TODO: case of multiple files saying @quick(something).
+# A symlink can't point to 2 things.
 
 class TestWhatDayIsIt(unittest.TestCase):
     def test_formats_days(self):
@@ -95,8 +96,8 @@ class TestDatabase(unittest.TestCase):
 
     def tearDown(self):
         for c in self.to_cleanup:
-            print "Cleaning up %s" % c
-            # shutil.rmtree(c)
+            # print "Cleaning up %s" % c
+            shutil.rmtree(c)
 
     def test_path(self):
         main, jnl_dir = self.main_with_fixture('typical')
@@ -118,7 +119,7 @@ class TestDatabase(unittest.TestCase):
         with_tag = main.context.database.entries_with_tag('quick', 'tickets/PERF-1188')
         assert len(with_tag) == 1
         assert with_tag[0].guid == 'HMKYKM4NNG4KREW61D55'
-        self.has_tags(with_tag[0], 
+        self.has_tags(with_tag[0],
             '@ft',
             '@quick(tickets/PERF-1188)',
             '@quick(entry-one-one)',
@@ -161,6 +162,8 @@ class TestDatabase(unittest.TestCase):
         another = jnl.Main({'JNL_DIR': jnl_dir})
         self.mock_what_day_is_it(another)
 
+        assert another is not main
+
         assert len(another.context.database.entries) == 3
         another_daily = another.context.database.daily_entry()
         assert another_daily.guid == daily.guid
@@ -172,13 +175,9 @@ class TestDatabase(unittest.TestCase):
             self.files = files
             self.calls = []
             self.root = root
-            self.when_called = None
 
         def _rmroot(self, path):
             return path.replace(self.root, 'root')
-
-        def when_called(self, then_return):
-            self.when_called = then_return
 
         def exists(self, path):
             return self._rmroot(path) in self.files
@@ -188,13 +187,17 @@ class TestDatabase(unittest.TestCase):
             return path in self.files and self.files[path] == 'dir' # change if using tuple
 
         def makedirs(self, *path):
-            self.files[self._rmroot(os.path.join(*path))] = ('dir') # TODO: use path as second item in tuple to be consistent
+            # TODO: use path as second item in tuple to be consistent
+            self.files[self._rmroot(os.path.join(*path))] = ('dir')
 
         def symlink(self, source, link_name):
-            self.files[self._rmroot(link_name)] = ('symlink', self._rmroot(source))
+            self.files[self._rmroot(link_name)] = (
+                'symlink', self._rmroot(source)
+            )
 
         def readlink(self, link):
-            _, path = self.files[self._rmroot(link)]
+            typ, path = self.files[self._rmroot(link)]
+            assert typ == 'symlink'
             return path.replace('root', self.root, 1)
 
         def unlink(self, path):
@@ -207,7 +210,10 @@ class TestDatabase(unittest.TestCase):
 
         def check_call(self, cmd):
             self.calls.append(cmd)
-            return self.when_called
+            # could return a canned value if want to test
+            # behavior around failures or if we care about
+            # what the shell call actually returns
+            return None
 
         def rmtree(self, to_remove):
             to_remove = self._rmroot(to_remove)
@@ -225,15 +231,15 @@ class TestDatabase(unittest.TestCase):
 
         assert msys.files == {
             'root/quick': 'dir',
-            'root/quick/entry-one-one.txt': ('symlink',
-                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/entry-one-two.txt': ('symlink',
-                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/example-tag.txt': ('symlink',
-                                           'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
+            'root/quick/entry-one-one.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/entry-one-two.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/example-tag.txt':
+                ('symlink', 'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
             'root/quick/tickets': 'dir',
-            'root/quick/tickets/PERF-1188.txt': ('symlink',
-                                                 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/tickets/PERF-1188.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
             'root/worklogs': 'dir'
         }
 
@@ -244,23 +250,23 @@ class TestDatabase(unittest.TestCase):
 
         msys.files = {
             'root/quick': 'dir',
-            'root/quick/some-other-thing-that-we-should-remove.txt': ('symlink',
-                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/some-other-thing-that-we-should-remove.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
         }
 
         main.context.database.scan()
 
         assert msys.files == {
             'root/quick': 'dir',
-            'root/quick/entry-one-one.txt': ('symlink',
-                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/entry-one-two.txt': ('symlink',
-                                             'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/example-tag.txt': ('symlink',
-                                           'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
+            'root/quick/entry-one-one.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/entry-one-two.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/example-tag.txt':
+                ('symlink', 'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
             'root/quick/tickets': 'dir',
-            'root/quick/tickets/PERF-1188.txt': ('symlink',
-                                                 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/tickets/PERF-1188.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
             'root/worklogs': 'dir'
         }
 

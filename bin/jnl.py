@@ -45,7 +45,6 @@ class Database(object):
         return self._entries
 
     def create_entry(self, tags=[]):
-        """See Entry.create() for semantics of tags"""
         entry = Entry(context=self.context,
                       tags=tags,
                       create=True)
@@ -163,11 +162,10 @@ class Entry(object):
             else:
                 match = Entry.FILENAME_RE.match(file_name)
                 if match is None:
+                    # TODO: add test of this
                     print("file_name mismatch %s" % file_name)
                     raise ValueError
                 guid = match.group(1).strip()
-                if match is None:
-                    raise ValueError
         self.guid = guid
 
         if path is None:
