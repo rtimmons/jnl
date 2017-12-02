@@ -2,21 +2,19 @@
 
 `jnl` is a set of small scripts to help manage daily worklogs and unsorted scratch files all stored as plaintext.
 
-Actual code is implemented in ugly untested Perl because the code is stupid simple. Important thing is the idea here 💃
-
-TODO: not accurate any more now that we're Python.
+Actual code is implemented in ugly n00b Python because the code is stupid simple. Important thing is the idea here 💃
 
 ## Overview and Installation
 
     cd ..wherever-you-keep-your-projects..
-    
+
     # Create your Journal Database. Choose whatever or location you'd like. Dropbox works okay.
     mkdir Journal
     # Setup environment variables
     # bash:
-    echo "export JNL_DB=$PWD/Journal" >> ~/.bashrc
+    echo "export JNL_DIR=$PWD/Journal" >> ~/.bashrc
     # zsh:
-    echo "export JNL_DB=$PWD/Journal" >> ~/.zshrc
+    echo "export JNL_DIR=$PWD/Journal" >> ~/.zshrc
     # optional: initialize it as a git repo
     git init Journal
     
@@ -29,22 +27,20 @@ TODO: not accurate any more now that we're Python.
     # zsh
     echo "export PATH=$PWD/jnl/bin:\$PATH" >> ~/.zshrc
 
-Then run te various `bin` scripts like a boss.
-
-You may want to create shell aliases. Check out suggestions in `aliases.zshrc`.
+Then run the various `bin` scripts like a boss.
 
 There is a "Today's Worklog.app" Apple application. Copy or drag to your Applications directory and rename to end with `.app` to enable.  Funny extension so Spotlight/Alfred & crew don't see this on its own. This little app runs `jdaily` to open today's worklog entry in TextMate (creating if not exists. You can modify it with *Script Editor.app* by dragging it in.
 
 (I cannot recall where I got the cute 'moleskine' icon for the .app. It's entirely possible I stole it and it's copyrighted and you could get into lots of trouble for seeing it. Possibly it's [one of these](http://pica-ae.deviantart.com/art/Moleskine-Icons-91551480)?)
 
-To change the application for opening files, modify `jnl.pm` - see `open -a TextMate.app` for instance.
+To change the application for opening files, modify the code - see `open -a TextMate.app` for instance.
 
 <!--
 TODO:
 
     Ignored files specified in settings
-    Change tag marker in settings
-    Change quick prefix in settings
+    Change tag `@` marker in settings
+    Change `quick` prefix in settings
     Ignore files with @ignore
     Alfred workflow (see https://www.alfredapp.com/help/workflows/)
      Append to daily
@@ -57,6 +53,8 @@ TODO:
     Console app?
     Bin shim copy/paste thing for root of db dir
 
+- move to proper module
+- create bin sub to call into module
 
 TODO: `jnl` wrapper script.
 TODO: OS X launcher apps "New Worklog Entry.app", "Today's Entry.app"
@@ -83,52 +81,53 @@ Try it out:
 
 ## Daily & Worklog Files
 
-These files are organized into a "database" which is just a folder. When you run the `jnl` scripts, they look for the `JNL_DB` environment variable for the path to that folder. If not set, the `testdb` directory within this repo will be used so you can play with `jnl`s features or debug while making changes.
+These files are organized into a "database" which is just a folder. When you run the `jnl` scripts, they look for the `JNL_DIR` environment variable for the path to that folder. If not set, the `testdb` directory within this repo will be used so you can play with `jnl`s features or debug while making changes.
 
 There are two kinds of files `jnl` knows about: 
 
 1.  "daily" files
 
-    -   You can create at most one per day
-    -   Daily files live in `$JNL_DB/daily`
-    -   Use `daily.pl` to open the current day's file (and create it if it doesn't exist)
-    
-    I use daily files for jotting down things I did, links to pull-requests I created, for putting meeting notes, etc.
+    -   Use `jdaily` to open the current day's file (and create it if it doesn't exist)
+    -   You can create at most one per day (`jdaily` looks for an existing item for today before creating a new one).
+    -   Daily files are just like regular worklog files, they just have a `@quick(daily/$yyyymmdd)` tag so they get symlinked to `quick/daily/$yyyymmdd.txt`.
 
-    The filenames for daily files are simply e.g. `dxx-2015-12-19.txt`. The `dxx` prefix is to help searching & grepping.
+    I use daily files for jotting down things I did, links to pull-requests I created, for putting meeting notes, etc.
 
 2.  "worklog" files
 
     -   Create them ad-hoc. They're cheap and lightweight to create and manage.
-    -   Worklog files live in `$JNL_DB/worklogs`
-    -   Use `worklog.pl` to create a new worklog file and open in TextMate
+    -   Worklog files live in `$JNL_DIR/worklogs`
+    -   Use `jworklog` to create a new worklog file and open in TextMate
     -   New files have a random "guid"-esque filename. They are not intended to be sorted by name, but you may want to sort them by date when you open the directory up in Finder to find files
 
     Create them ad-hoc for composing text, saving snippets of code, drafting ideas, or as buffer space. 
 
     I like to give myself free-reign to save anything at all into worklog files; I don't treat each one as being important.  Once in the habit of saving random text to worklogs it's very easy to throw one-off shell commands or script output or whatever and search for them later.
 
-    The important files - ones that I often refer back to -  I include the text `@@important`. I have a Finder smart-folder setup that gives me all my important files.
+## Tags 
 
-    **NEW**:  
-    If you have the line `@quick(some-text)`, the `jquick` command will create
-    symlinks in the `$JNL_DB/quick` directory to those files.
+**`@quick`**:
 
-    E.g. If the file `MC289YWD6EWRWPYCMTJD.txt` has the contents
-    `quick(2016-resolutions)`, then running `jquick` will result in a symlink
-    `quick/2016-resolutions.txt` pointing to `MC289YWD6EWRWPYCMTJD.txt`. The
-    `some-text` bits between the parentheses must be `a-z`, `A-Z`, `0-9`, `-`,
-    or `_`. Other matches will be ignored.
+If you have the line `@quick(some-text)`, the `jquick` command will create
+symlinks in the `$JNL_DIR/quick` directory to those files.
+
+E.g. If the file `MC289YWD6EWRWPYCMTJD.txt` has the contents
+`quick(2016-resolutions)`, then running `jquick` will result in a symlink
+`quick/2016-resolutions.txt` pointing to `MC289YWD6EWRWPYCMTJD.txt`. You can create subdirectories just fine e.g. `@quick(project-overviews/my-project)`, and `jquick` will create a symlink in the `quick/project-overviews` directory (creating it as necessary). This is how "daily" files are managed.
+
+**`@ft`**
+
+I like to compose text in FoldingText. Add the tag `@ft` and it will set the OSX "Open With" attribute such that the file opens with FoldingText when double-clicked or `open`ed. You could change this to some other program with a small tweak.
 
 ## DayOne Conversion
 
-I used to use DayOne.app for my daily files but it's a pain. But you can export your DayOne journal to plaintext and then use `day1-convert.pl` to convert the entires to daily entries.
+I used to use DayOne.app for my daily files but it's a pain. But you can export your DayOne journal to plaintext and then use `misc/convert-from-dayone` to convert the entires to daily entries.
+
+Then use `misc/dxx-convert.sh` to convert from old-style `dxx-yyyymmdd.txt` files to new-style `worklogs/$guid.txt` files with tags.
 
 ## Git and Backup
 
-Don't keep your db folder in here, create a new git repo for it. I like to use `~/Journal`. See above.
-
-If you setup a git repo for your db, the `jnl commit` command will "autopush" your journal with a generated commit message. I don't find there's value in commit messages for these files. If you do, you can always commit like usual.
+Don't keep your db folder in this repo, create a new git repo for it. I like to use `~/Journal`. See above.
 
 I like to create a "backup" remote on an external drive and set it up to mirror my local journal repo. So I can just do `git push backup`.
 
@@ -138,29 +137,11 @@ I like to create a "backup" remote on an external drive and set it up to mirror 
 [![Codacy Badge][codacy-image]][codacy-url]
 -->
 
-----------------------------------------
+## Local Dev Setup
 
-Below is from a python fork I worked on over a weekend.
+I can't remember how I setup virtualenv. Do that first. Below is notes I took but probably not right....
 
-# Pyjnl
-
-captain&#39;s logs
-
-## What's Left
-
-- remove old `@quick` symlinks that are no longer valid
-- move to proper module
-- create bin sub to call into module
-- steal automated tests from the perl version
-
-
-## Requirements
-
-Works for me on Mac OS X 10.13.1. But it's just python.
-
-## Setup
-
-```
+```sh
 # ensure latest command-line tools
 xcode-select --install
 
@@ -187,10 +168,9 @@ Then restart your shell (what is this, windows?!).
 
 ## Test
 
-```
-JNL_DIR=$PWD/tests/fixtures/typical python ./tests/pyjnl_test.py scan
-
-py.test -v -s --cov-report term-missing --cov=pyjnl -r w tests
+```sh
+# after setting up virtualenv and pip installing
+pytest
 ```
 
 
