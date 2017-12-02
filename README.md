@@ -35,49 +35,6 @@ There is a "Today's Worklog.app" Apple application. Copy or drag to your Applica
 
 To change the application for opening files, modify the code - see `open -a TextMate.app` for instance.
 
-<!--
-TODO:
-
-    Ignored files specified in settings
-    Change tag `@` marker in settings
-    Change `quick` prefix in settings
-    Ignore files with @ignore
-    Alfred workflow (see https://www.alfredapp.com/help/workflows/)
-     Append to daily
-     Append to quick
-     Create as new wl
-     Open daily
-     Open quick
-
-    Simple UI view app like nv but better
-    Console app?
-    Bin shim copy/paste thing for root of db dir
-
-- move to proper module
-- create bin sub to call into module
-
-TODO: `jnl` wrapper script.
-TODO: OS X launcher apps "New Worklog Entry.app", "Today's Entry.app"
-TODO: generated index page for daily entries and maybe first line or two of worklog entries
-TODO: fancier file-viewer?
-
-TODO: 'quick' symlinks:
-- Add @quick(some-identifier). Script to scan for them and create symlinks in 'quick' directory. So if worklogs/QPJX0BGKHPFHZPNJND1K.txt contains @quick(my-novel), symlink `quick/my-novel.txt -> worklogs/QPJX0BGKHPFHZPNJND1K.txt`. Makes it easy to "promote" worklogs items if they become frequently-updated. Potential for "abuse"? Maybe too much structure? Not sure.
-- could add suggested git-push hook to re-set them up?
-- this is a "cache": how to handle changes & conflicts & things created outside the script?
-- if this pans out, maybe dailies are just @daily(2016-01-08)? Harder to enforce uniqueness? Then you have two names - Q4UFG5G2FXTRDJFDZ1N5.txt and 2016-01-08.txt? Not sure if that's really a problem.
-
-Try it out:
-
-    jnl daily
-    jnl worklog
-    jnl database
-    jnl open worklogs
-    jnl open daily
-    jnl commit
-
-(The `jnl` script doesn't exist yet - you have to go thru the `.pl` scripts manually like an animal. I'm just using shell aliases...)
--->
 
 ## Daily & Worklog Files
 
@@ -118,6 +75,10 @@ E.g. If the file `MC289YWD6EWRWPYCMTJD.txt` has the contents
 **`@ft`**
 
 I like to compose text in FoldingText. Add the tag `@ft` and it will set the OSX "Open With" attribute such that the file opens with FoldingText when double-clicked or `open`ed. You could change this to some other program with a small tweak.
+
+**`@noscan`**
+
+We read the entire DB a lot. If you have big files with a bunch of garbage, you can use the `@noscan` tag. As soon as the DB reader sees `@noscan` it doesn't continue reading a file, but the file is treated like a normal entry otherwise (so tags before this one are respected).
 
 ## DayOne Conversion
 
@@ -179,11 +140,3 @@ pytest
 MIT
 
 
-<!--
-[travis-img]: https://travis-ci.org/rtimmons/pyjnl.svg?branch=master
-[travis-url]: https://travis-ci.org/rtimmons/pyjnl
-[coverall-img]: https://coveralls.io/repos/github/rtimmons/pyjnl/badge.svg?branch=master
-[coverall-url]: https://coveralls.io/github/rtimmons/pyjnl?branch=master
-[codacy-image]: https://api.codacy.com/project/badge/Grade/ce0ad20ca59947af86b0f17a5779c804
-[codacy-url]: https://www.codacy.com/app/rtimmons/pyjnl?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rtimmons/pyjnl&amp;utm_campaign=Badge_Grade
--->
