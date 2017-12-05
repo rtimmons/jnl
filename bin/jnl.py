@@ -72,6 +72,7 @@ class Database(object):
         return existing[0]
 
     def scan(self):
+        # TODO: multi-thread all of this nonsense
         listeners = self.context.entry_listeners
         for listener in listeners:
             listener.on_pre_scan()
