@@ -6,6 +6,9 @@
     - Change tag `@` marker in settings
     - Change `quick` prefix or output dir in settings
 
+- support `@name(foo)` tag to rename the actual file.
+  Interact with git to do `git mv`?
+
 - Ignore files with @ignore
 
 - Alfred workflow (see https://www.alfredapp.com/help/workflows/)
@@ -41,6 +44,7 @@
 
 <!--
 Integrate with fancy CI tooling:
+
 [travis-img]: https://travis-ci.org/rtimmons/jnl.svg?branch=master
 [travis-url]: https://travis-ci.org/rtimmons/jnl
 [coverall-img]: https://coveralls.io/repos/github/rtimmons/jnl/badge.svg?branch=master
