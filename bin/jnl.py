@@ -8,7 +8,7 @@ import os
 import re
 import subprocess
 import shutil
-
+import glob
 
 class Settings(object):
     def __init__(self, context):
@@ -330,7 +330,14 @@ class System(object):
         return os.unlink(path)
 
     def rmtree(self,path):
-        return shutil.rmtree(path)
+        """Remove everything in a directory but don't remove the directory itself.
+        This is useful if you have things referring to the file inode itself or
+        things that generally get confused about treating a directory as symbolic name."""
+        for f in glob.glob(os.path.join(path, '*')):
+            if os.path.isfile(f):
+                os.remove(f)
+            else:
+                shutil.rmtree(f)
 
     def isdir(self, path):
         return os.path.isdir(path)
