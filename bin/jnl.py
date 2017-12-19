@@ -371,7 +371,7 @@ class Symlinker(NopListener):
 class PreScanQuickCleaner(NopListener):
     def on_pre_scan(self):
         path = self.context.database.path('quick')
-        print("Trying to clean %s" % path)
+        print("Scanning %s" % path)
         if self.context.system.exists(path):
             self.context.system.rmtree(path)
 
@@ -441,10 +441,9 @@ class Main(object):
         )
 
     def run(self, argv):
-        # print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
         if argv[1] == "new":
             self.new(argv)
-        if argv[1] == 'daily':
+        if argv[1] == 'daily' or argv[1] == 'today':
             self.daily(argv)
         if argv[1] == 'scan':
             self.scan(argv)

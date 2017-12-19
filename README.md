@@ -17,10 +17,16 @@ Actual code is implemented in ugly n00b Python because the code is stupid simple
     echo "export JNL_DIR=$PWD/Journal" >> ~/.zshrc
     # optional: initialize it as a git repo
     git init Journal
-    
+
     # Get the stupid jnl scripts
     git clone https://.../jnl.git
-    
+
+    # setup virtualenv
+    # only need to do this once
+    virtualenv venv
+    source ./venv/bin/activate
+    pip install -r requirements.txt
+
     # Add jnl to $PATH
     # bash:
     echo "export PATH=$PWD/jnl/bin:\$PATH" >> ~/.bashrc
@@ -29,7 +35,7 @@ Actual code is implemented in ugly n00b Python because the code is stupid simple
 
 Then run the various `bin` scripts like a boss.
 
-There is a "Today's Worklog.app" Apple application. Copy or drag to your Applications directory and rename to end with `.app` to enable.  Funny extension so Spotlight/Alfred & crew don't see this on its own. This little app runs `jdaily` to open today's worklog entry in TextMate (creating if not exists. You can modify it with *Script Editor.app* by dragging it in.
+There is a "Today's Worklog.app" Apple application. Copy or drag to your Applications directory and rename to end with `.app` to enable.  Funny extension so Spotlight/Alfred & crew don't see this on its own. This little app runs `jnl daily` to open today's worklog entry in TextMate (creating if not exists. You can modify it with *Script Editor.app* by dragging it in.
 
 (I cannot recall where I got the cute 'moleskine' icon for the .app. It's entirely possible I stole it and it's copyrighted and you could get into lots of trouble for seeing it. Possibly it's [one of these](http://pica-ae.deviantart.com/art/Moleskine-Icons-91551480)?)
 
@@ -44,8 +50,8 @@ There are two kinds of files `jnl` knows about:
 
 1.  "daily" files
 
-    -   Use `jdaily` to open the current day's file (and create it if it doesn't exist)
-    -   You can create at most one per day (`jdaily` looks for an existing item for today before creating a new one).
+    -   Use `jnl today` to open the current day's file (and create it if it doesn't exist)
+    -   You can create at most one per day (`jnl today` looks for an existing item for today before creating a new one).
     -   Daily files are just like regular worklog files, they just have a `@quick(daily/$yyyymmdd)` tag so they get symlinked to `quick/daily/$yyyymmdd.txt`.
 
     I use daily files for jotting down things I did, links to pull-requests I created, for putting meeting notes, etc.
@@ -54,7 +60,7 @@ There are two kinds of files `jnl` knows about:
 
     -   Create them ad-hoc. They're cheap and lightweight to create and manage.
     -   Worklog files live in `$JNL_DIR/worklogs`
-    -   Use `jworklog` to create a new worklog file and open in TextMate
+    -   Use `jnl new` to create a new worklog file and open in TextMate
     -   New files have a random "guid"-esque filename. They are not intended to be sorted by name, but you may want to sort them by date when you open the directory up in Finder to find files
 
     Create them ad-hoc for composing text, saving snippets of code, drafting ideas, or as buffer space. 
@@ -65,12 +71,14 @@ There are two kinds of files `jnl` knows about:
 
 **`@quick`**:
 
-If you have the line `@quick(some-text)`, the `jquick` command will create
+If you have the line `@quick(some-text)`, the `jnl scan` command will create
 symlinks in the `$JNL_DIR/quick` directory to those files.
 
 E.g. If the file `MC289YWD6EWRWPYCMTJD.txt` has the contents
-`quick(2016-resolutions)`, then running `jquick` will result in a symlink
-`quick/2016-resolutions.txt` pointing to `MC289YWD6EWRWPYCMTJD.txt`. You can create subdirectories just fine e.g. `@quick(project-overviews/my-project)`, and `jquick` will create a symlink in the `quick/project-overviews` directory (creating it as necessary). This is how "daily" files are managed.
+`quick(2016-resolutions)`, then running `jnl scan` will result in a symlink
+`quick/2016-resolutions.txt` pointing to `MC289YWD6EWRWPYCMTJD.txt`.
+
+Subdirectories work. E.g. `@quick(project-overviews/my-project)`, and `jnl scan` will create a symlink in the `quick/project-overviews` directory (creating it as necessary). This is how "daily" files are managed.
 
 **`@ft`**
 
@@ -78,7 +86,7 @@ I like to compose text in FoldingText. Add the tag `@ft` and it will set the OSX
 
 **`@noscan`**
 
-We read the entire DB a lot. If you have big files with a bunch of garbage, you can use the `@noscan` tag. As soon as the DB reader sees `@noscan` it doesn't continue reading a file, but the file is treated like a normal entry otherwise (so tags before this one are respected).
+`jnl` reads the entire directory a lot. If you have big files with a bunch of garbage, you can use the `@noscan` tag. As soon as the DB reader sees `@noscan` it doesn't continue reading a file, but the file is treated like a normal entry otherwise (so tags before this one are respected).
 
 ## DayOne Conversion
 
