@@ -7,5 +7,5 @@ pushd "$root" >/dev/null
 popd >/dev/null
 
 pushd "$root" >/dev/null
-    "$root/venv/bin/python" "$root/bin/jnl.py" "$@"
+    "$root/bin/jnl" "daily" "$@"
 popd >/dev/null

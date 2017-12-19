@@ -8,7 +8,7 @@ import os
 import re
 import subprocess
 import shutil
-
+import glob
 
 class Settings(object):
     def __init__(self, context):
@@ -44,8 +44,7 @@ class Database(object):
             ]
         return self._entries
 
-    def create_entry(self, tags):
-        """See Entry.create() for semantics of tags"""
+    def create_entry(self, tags=[]):
         entry = Entry(context=self.context,
                       tags=tags,
                       create=True)
@@ -73,6 +72,7 @@ class Database(object):
         return existing[0]
 
     def scan(self):
+        # TODO: multi-thread all of this nonsense
         listeners = self.context.entry_listeners
         for listener in listeners:
             listener.on_pre_scan()
@@ -163,11 +163,10 @@ class Entry(object):
             else:
                 match = Entry.FILENAME_RE.match(file_name)
                 if match is None:
+                    # TODO: add test of this
                     print("file_name mismatch %s" % file_name)
                     raise ValueError
                 guid = match.group(1).strip()
-                if match is None:
-                    raise ValueError
         self.guid = guid
 
         if path is None:
@@ -331,11 +330,20 @@ class System(object):
         return os.unlink(path)
 
     def rmtree(self,path):
-        return shutil.rmtree(path)
+        """Remove everything in a directory but don't remove the directory itself.
+        This is useful if you have things referring to the file inode itself or
+        things that generally get confused about treating a directory as symbolic name."""
+        for f in glob.glob(os.path.join(path, '*')):
+            if os.path.isfile(f):
+                os.remove(f)
+            else:
+                shutil.rmtree(f)
 
     def isdir(self, path):
         return os.path.isdir(path)
 
+    def now(self):
+        return datetime.datetime.now()
 
 
 class Symlinker(NopListener):
@@ -370,8 +378,8 @@ class WhatDayIsIt(object):
         self.context = context
 
     def yyyymmdd(self):
-        now = datetime.datetime.now()
-        return "%s-%s-%s" % (now.year, now.month, now.day)
+        now = self.context.system.now()
+        return "%04d-%02d-%02d" % (now.year, now.month, now.day)
 
 
 class GuidGenerator(object):
@@ -387,7 +395,7 @@ class GuidGenerator(object):
 
     def guid(self):
         return "".join([
-            random.choice(GuidGenerator.LETTERS) for i in range(20)
+            random.choice(GuidGenerator.LETTERS) for i in range(21)
         ])
 
 
@@ -424,8 +432,15 @@ class Main(object):
             self.context.database.entry_with_guid(argv[2])
         )
 
+    def new(self, argv):
+        self.context.opener.open(
+            self.context.database.create_entry()
+        )
+
     def run(self, argv):
         # print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
+        if argv[1] == "new":
+            self.new(argv)
         if argv[1] == 'daily':
             self.daily(argv)
         if argv[1] == 'scan':
