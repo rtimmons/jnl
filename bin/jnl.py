@@ -301,7 +301,7 @@ class SetsOpenWith(NopListener):
             return
 
         return self.context.system.check_call([
-            'xattr', '-wx', 'com.apple.LaunchServices.OpenWith',
+            '/usr/bin/xattr', '-wx', 'com.apple.LaunchServices.OpenWith',
             SetsOpenWith.OPEN_WITH_ATTR,
             entry.file_path()
         ])
