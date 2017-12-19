@@ -9,6 +9,8 @@ import re
 import subprocess
 import shutil
 import glob
+import xattr
+import binascii
 
 class Settings(object):
     def __init__(self, context):
@@ -283,7 +285,7 @@ class SetsOpenWith(NopListener):
     TODO: better support for an arbitrary application that doesn't require the user to modify the source :)
     """
 
-    OPEN_WITH_ATTR = '''
+    OPEN_WITH_ATTR_HEX = re.sub(r'\s*', '', '''
         62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57
         76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62
         75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10
@@ -294,17 +296,18 @@ class SetsOpenWith(NopListener):
         0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00
         00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 6F
-    '''
+    ''', flags=re.M)
+    OPEN_WITH_ATTR = binascii.unhexlify(OPEN_WITH_ATTR_HEX)
 
     def on_entry(self, entry):
         if not entry.has_tag('ft', None):
             return
 
-        return self.context.system.check_call([
-            '/usr/bin/xattr', '-wx', 'com.apple.LaunchServices.OpenWith',
-            SetsOpenWith.OPEN_WITH_ATTR,
-            entry.file_path()
-        ])
+        return xattr.setxattr(
+            entry.file_path(),
+            'com.apple.LaunchServices.OpenWith',
+            SetsOpenWith.OPEN_WITH_ATTR
+        )
 
 
 class System(object):
