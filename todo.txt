@@ -9,6 +9,9 @@
 - support `@name(foo)` tag to rename the actual file.
   Interact with git to do `git mv`?
 
+- hierarchical daily files so current month (week? last N entries?) in
+  `daily` but others are in dir by month and/or year.
+
 - Ignore files with @ignore
 
 - Alfred workflow (see https://www.alfredapp.com/help/workflows/)
@@ -40,9 +43,10 @@
     - `jnl open <guid prefix>`
 
 - explain how to modify the `.app` to call `jdaily`
-- suggested git hook to run `jquick`
 
-- support filtering @offline or something tags that get `grep`ed into a text file on dropbox or similar for one-way views onto mobile
+- suggested git hook to run `jnl scan`
+
+- support filtering `@offline` or something tags that get `grep`ed into a text file on dropbox or similar for one-way views onto mobile
 
 <!--
 Integrate with fancy CI tooling:
