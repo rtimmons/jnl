@@ -80,7 +80,11 @@ class Database(object):
             listener.on_pre_scan()
         for entry in self.entries:
             for listener in listeners:
-                listener.on_entry(entry)
+                try:
+                    listener.on_entry(entry)
+                except Exception:
+                    print "Exception on entry %s" % entry
+                    raise
         for listener in listeners:
             listener.on_post_scan()
 
@@ -351,7 +355,7 @@ class System(object):
 
 class Symlinker(NopListener):
     def on_entry(self, entry):
-        vals = [t.value for t in entry.tags if t.name == 'quick']
+        vals = [t.value for t in entry.tags if t.name == 'quick' and t.value is not None]
         for val in vals:
             parts = val.split('/')
             dir_parts = parts[:-1]
