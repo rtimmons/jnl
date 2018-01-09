@@ -12,6 +12,15 @@
 - hierarchical daily files so current month (week? last N entries?) in
   `daily` but others are in dir by month and/or year.
 
+-   integrate with text files outside of jnl dir.
+    e.g. recognize files with a single line like 
+
+        @link(~/todo.txt)
+
+    and treat the `~/todo.txt` as being part of the jnl dir.
+    Would be nice for supporting @quick() files that live in
+    github repos, etc.
+
 - Ignore files with @ignore
 
 - Alfred workflow (see https://www.alfredapp.com/help/workflows/)
@@ -26,11 +35,16 @@
 
     - Simple UI view app like nv but better
     - Console app?
-    - generated index page for daily entries and maybe first line or two of worklog entries
+    - generated index page for daily entries and maybe first line or two entries
+    - blame view
+    - grep view
+    - group by topic/tag {all sections with particular @tag together}
 
-- create bin sub to call into module / shim copy/paste thing for root of db dir
+- Support multiple JNL dirs
 
-- move to proper python module
+    - create bin-stub to call into module / shim copy/paste thing for root of db dir (so can use `dirname $0` for JNL_DIR)
+
+- move to proper python module. [ftfy](https://github.com/LuminosoInsight/python-ftfy) looks like it does this simply and well?
 
 - smarter `jnl` wrapper script
 
