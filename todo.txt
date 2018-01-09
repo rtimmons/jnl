@@ -1,66 +1,74 @@
+-   Settings
 
-- Settings
+    -   if `JNL_DIR` not specified, read settings file `~/.jnl`?
+    -   Ignored files (don't require `@noscan` for every file?)
+    -   Change tag `@` marker in settings
+    -   Change `quick` prefix or output dir in settings
 
-    - if `JNL_DIR` not specified, read settings file `~/.jnl`?
-    - Ignored files (don't require `@noscan` for every file?)
-    - Change tag `@` marker in settings
-    - Change `quick` prefix or output dir in settings
+-   interact with filesystem more
 
-- support `@name(foo)` tag to rename the actual file.
-  Interact with git to do `git mv`?
+    -   support `@name(foo)` tag to rename the actual file. Interact
+        with git to do `git mv`?
 
-- hierarchical daily files so current month (week? last N entries?) in
-  `daily` but others are in dir by month and/or year.
+    -   integrate with text files outside of jnl dir. e.g. recognize
+        files with a single line like
 
--   integrate with text files outside of jnl dir.
-    e.g. recognize files with a single line like 
+            @link(~/todo.txt)
 
-        @link(~/todo.txt)
+        and treat the `~/todo.txt` as being part of the jnl dir. Would
+        be nice for supporting @quick() files that live in github repos,
+        etc.
 
-    and treat the `~/todo.txt` as being part of the jnl dir.
-    Would be nice for supporting @quick() files that live in
-    github repos, etc.
+    -   support filtering `@offline` or something tags that get `grep`ed
+        into a text file on dropbox or similar for one-way views onto
+        mobile
 
-- Ignore files with @ignore
+-   hierarchical daily files so current month (week? last N entries?) in
+    `daily` but others are in dir by month and/or year.
 
-- Alfred workflow (see https://www.alfredapp.com/help/workflows/)
+-   Ignore files with @ignore
 
-    - Append to daily
-    - Append to quick
-    - Create as new wl
-    - Open daily
-    - Open quick
+-   Alfred workflow (see https://www.alfredapp.com/help/workflows/)
 
-- An actual UI?
+    -   Append to daily
+    -   Append to quick
+    -   Create as new wl
+    -   Open daily
+    -   Open quick
 
-    - Simple UI view app like nv but better
-    - Console app?
-    - generated index page for daily entries and maybe first line or two entries
-    - blame view
-    - grep view
-    - group by topic/tag {all sections with particular @tag together}
+-   An actual UI?
 
-- Support multiple JNL dirs
+    -   Simple UI view app like nv but better
+    -   Console app?
+    -   generated index page for daily entries and maybe first line or
+        two entries
+    -   blame view
+    -   grep view
+    -   group by topic/tag {all sections with particular @tag together}
 
-    - create bin-stub to call into module / shim copy/paste thing for root of db dir (so can use `dirname $0` for JNL_DIR)
+-   Support multiple JNL dirs
 
-- move to proper python module. [ftfy](https://github.com/LuminosoInsight/python-ftfy) looks like it does this simply and well?
+    -   create bin-stub to call into module / shim copy/paste thing for
+        root of db dir (so can use `dirname $0` for `JNL_DIR`)
 
-- smarter `jnl` wrapper script
+-   move to proper python module.
+    [ftfy](https://github.com/LuminosoInsight/python-ftfy) looks like it
+    does this simply and well?
 
-    - `jnl daily`
-    - `jnl worklog`
-    - `jnl database`
-    - `jnl open worklogs`
-    - `jnl open daily`
-    - `jnl commit`
-    - `jnl open <guid prefix>`
+-   smarter `jnl` wrapper script
 
-- explain how to modify the `.app` to call `jdaily`
+    -   `jnl daily`
+    -   `jnl worklog`
+    -   `jnl database`
+    -   `jnl open worklogs`
+    -   `jnl open daily`
+    -   `jnl commit`
+    -   `jnl open <guid prefix>`
 
-- suggested git hook to run `jnl scan`
+-   better setup / first-run experience
 
-- support filtering `@offline` or something tags that get `grep`ed into a text file on dropbox or similar for one-way views onto mobile
+    -   explain how to modify the `.app` to call `jdaily`
+    -   suggested git hook to run `jnl scan`
 
 <!--
 Integrate with fancy CI tooling:
@@ -72,3 +80,4 @@ Integrate with fancy CI tooling:
 [codacy-image]: https://api.codacy.com/project/badge/Grade/ce0ad20ca59947af86b0f17a5779c804
 [codacy-url]: https://www.codacy.com/app/rtimmons/jnl?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rtimmons/jnl&amp;utm_campaign=Badge_Grade
 -->
+
