@@ -11,6 +11,8 @@ import shutil
 import glob
 import xattr
 import binascii
+from contextlib import contextmanager
+
 
 class Settings(object):
     def __init__(self, context):
@@ -405,6 +407,24 @@ class GuidGenerator(object):
             random.choice(GuidGenerator.LETTERS) for i in range(21)
         ])
 
+class Git(object):
+    def __init__(self, context):
+        self.context = context
+
+    def _run(self, *git_command):
+        command = ['git']
+        command.extend(git_command)
+        with self.context.in_dir():
+            print self.context.system.check_call(command)
+
+    def pull(self):
+        self._run('pull')
+
+    def status(self):
+        self._run('status')
+
+    def autopush(self):
+        self._run('autopush')
 
 class Context(object):
     def __init__(self, environment):
@@ -418,6 +438,7 @@ class Context(object):
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
         self.database = Database(self)
+        self.git = Git(self)
         self.entry_listeners = [
             self.sets_open_with,
             self.symlinker,
@@ -426,6 +447,15 @@ class Context(object):
 
     def __str__(self):
         return "Context()"
+
+    @contextmanager
+    def in_dir(self, *path):
+        old_dir = os.getcwd()
+        try:
+            os.chdir(self.database.path(*path))
+            yield
+        finally:
+            os.chdir(old_dir)
 
 
 class Main(object):
@@ -444,15 +474,25 @@ class Main(object):
             self.context.database.create_entry()
         )
 
+    def sync(self, argv):
+        self.context.git.pull()
+        self.scan(argv)
+        self.context.git.status()
+        if len(argv) > 2 and argv[2] == 'push':
+            self.context.git.autopush()
+
     def run(self, argv):
         if argv[1] == "new":
-            self.new(argv)
+            return self.new(argv)
         if argv[1] == 'daily' or argv[1] == 'today':
-            self.daily(argv)
+            return self.daily(argv)
         if argv[1] == 'scan':
-            self.scan(argv)
+            return self.scan(argv)
         if argv[1] == 'open':
-            self.open(argv)
+            return self.open(argv)
+        if argv[1] == 'sync':
+            return self.sync(argv)
+        raise ValueError("Don't know about action {}".format(argv[1]))
 
     def scan(self, argv):
         self.context.database.scan()
