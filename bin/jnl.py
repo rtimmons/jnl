@@ -343,10 +343,14 @@ class System(object):
         This is useful if you have things referring to the file inode itself or
         things that generally get confused about treating a directory as symbolic name."""
         for f in glob.glob(os.path.join(path, '*')):
-            if os.path.isfile(f):
+            if os.path.isfile(f) or os.path.islink(f):
                 os.remove(f)
             else:
-                shutil.rmtree(f)
+                try:
+                    shutil.rmtree(f)
+                except Exception as e:
+                    print("Cannot remove {}/{}".format(path, f))
+                    raise e
 
     def isdir(self, path):
         return os.path.isdir(path)
