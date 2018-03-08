@@ -258,37 +258,14 @@ class SetsOpenWith(NopListener):
         self.context = context
 
     """The xattr controlling the "Open With" functionality is unfortunately binary.
-    To use a different application, use `xattr -l`
-
-        $ xattr -l $FILE
-        com.apple.LaunchServices.OpenWith:
-        00000000  62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57  |bplist00.......W|
-        00000010  76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62  |versionTpath_..b|
-        00000020  75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10  |undleidentifier.|
-        00000030  00 5F 10 1D 2F 41 70 70 6C 69 63 61 74 69 6F 6E  |._../Application|
-        00000040  73 2F 46 6F 6C 64 69 6E 67 54 65 78 74 2E 61 70  |s/FoldingText.ap|
-        00000050  70 5F 10 1B 63 6F 6D 2E 66 6F 6C 64 69 6E 67 74  |p_..com.foldingt|
-        00000060  65 78 74 2E 46 6F 6C 64 69 6E 67 54 65 78 74 08  |ext.FoldingText.|
-        00000070  0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00  |.../1Q..........|
-        00000080  00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00  |................|
-        00000090  00 00 00 00 00 6F                                |.....o|
-        00000096
+    To use a different application, use `xattr -px`
 
     or with `-px`:
 
         $ xattr -px com.apple.LaunchServices.OpenWith $FILE
         62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57
-        76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62
-        75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10
-        00 5F 10 1D 2F 41 70 70 6C 69 63 61 74 69 6F 6E
-        73 2F 46 6F 6C 64 69 6E 67 54 65 78 74 2E 61 70
-        70 5F 10 1B 63 6F 6D 2E 66 6F 6C 64 69 6E 67 74
-        65 78 74 2E 46 6F 6C 64 69 6E 67 54 65 78 74 08
-        0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00
-        00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
+        [...]
         00 00 00 00 00 6F
-
-    TODO: better support for an arbitrary application that doesn't require the user to modify the source :)
     """
 
     OPEN_WITH_ATTR_HEX = re.sub(r'\s*', '', '''
