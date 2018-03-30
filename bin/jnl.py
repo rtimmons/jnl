@@ -209,6 +209,7 @@ class Entry(object):
     def tags(self):
         if self._tags is None:
             tags = []
+            # TODO: use self.lines here
             with open(self.file_path()) as f:
                 for line in f:
                     on_line = Tag.parse(line)
@@ -217,6 +218,15 @@ class Entry(object):
                         break
             self._tags = [t for t in tags if t is not None]
         return self._tags
+
+    def lines(self):
+        with open(self.file_path()) as f:
+            for line in f:
+                yield line
+
+    def text(self):
+        out = '\n'.join([x for x in self.lines()])
+        return out
 
     def has_tag(self, name, val):
         return any(
