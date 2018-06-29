@@ -55,6 +55,12 @@ class Database(object):
         self.entries.append(entry)
         return entry
 
+    # maybe combine all these entry_with_* stuff to have a predicate or something
+    # or at least refactor internal
+
+    def entries_with_project(self, project):
+        return [e for e in self.entries if e.tag_starts_with('project', project)]
+
     def entry_with_guid(self, guid):
         return [e for e in self.entries if e.guid == guid][0]
 
@@ -228,9 +234,17 @@ class Entry(object):
         out = '\n'.join([x for x in self.lines()])
         return out
 
-    def has_tag(self, name, val):
+    # maybe combine has_tag and tag_starts_with and pass in a predicate for the tag value?
+
+    def has_tag(self, name, val = None):
         return any(
-            t.name == name and t.value == val 
+            t.name == name and (True if val is None else t.value == val)
+            for t in self.tags
+        )
+
+    def tag_starts_with(self, name, prefix):
+        return any(
+            t.name == name and t.value is not None and t.value.startswith(prefix)
             for t in self.tags
         )
 
@@ -306,6 +320,11 @@ class SetsOpenWith(NopListener):
 class System(object):
     def __init__(self, context):
         self.context = context
+
+    def file_contents(self, path):
+        path = os.path.join(os.environ.get('JNL_ORIG_CWD'), path)
+        with open(path, "r") as f:
+            return f.read()
 
     def makedirs(self,*args):
         return os.makedirs(*args)
@@ -472,7 +491,17 @@ class Main(object):
         if len(argv) > 2 and argv[2] == 'push':
             self.context.git.autopush()
 
+    def proj(self, argv):
+        if len(argv) < 3:
+            project = self.context.system.file_contents(".project").strip()
+        else:
+            project = argv[2]
+        for e in self.context.database.entries_with_project(project):
+            self.context.opener.open(e)
+
     def run(self, argv):
+        if len(argv) == 1 or argv[1].startswith("p"):
+            return self.proj(argv)
         if argv[1] == "new":
             return self.new(argv)
         if argv[1] == 'daily' or argv[1] == 'today':

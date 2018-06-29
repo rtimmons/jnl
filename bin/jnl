@@ -6,6 +6,8 @@ pushd "$root" >/dev/null
     root="$(pwd -P)"
 popd >/dev/null
 
+JNL_ORIG_CWD="$PWD"
+
 pushd "$root" >/dev/null
-    "$root/venv/bin/python" "$root/bin/jnl.py" "$@"
+    JNL_ORIG_CWD="$JNL_ORIG_CWD" "$root/venv/bin/python" "$root/bin/jnl.py" "$@"
 popd >/dev/null
