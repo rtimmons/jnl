@@ -7,7 +7,8 @@ file(GLOB_RECURSE data          resources/*)
 
 add_executable(jnl ${sources} ${data})
 
-target_compile_options(jnl PUBLIC -std=c++1y -Wall -Wfloat-conversion)
+set_property(TARGET jnl PROPERTY CXX_STANDARD 17)
+target_compile_options(jnl PUBLIC -std=c++17 -Wall -Wfloat-conversion)
 
 # this lets me include files relative to the root src dir with a <> pair
 # target_include_directories(example PUBLIC src/main)
