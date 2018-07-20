@@ -1,3 +1,11 @@
+-   Summary files:  
+    Create `summary/weekly.txt`, `summary/monthly.txt`, etc.
+    (Bonus points if can bi-directionally edit them!)
+
+-   Differentiate between `@quick`, `@daily`, and `@project`.
+
+-   Document the `.project` file (and `@project` tag) functionality.
+
 -   Settings
 
     -   if `JNL_DIR` not specified, read settings file `~/.jnl`?
