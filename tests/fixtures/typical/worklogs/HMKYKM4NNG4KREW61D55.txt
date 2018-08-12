@@ -1,7 +1,7 @@
 This is a sample entry
 
 My Reference: HMKYKM4NNG4KREW61D55  
-@quick(daily/2018-05-30)
+@daily(2018-05-30)
 @ft @quick(tickets/PERF-1188)
 @quick(entry-one-one)
 @quick(entry-one-two)

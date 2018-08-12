@@ -364,11 +364,16 @@ class System(object):
     def now(self):
         return datetime.datetime.now()
 
-
 class Symlinker(NopListener):
     def on_entry(self, entry):
-        vals = [t.value for t in entry.tags if t.name == 'quick' and t.value is not None]
-        for val in vals:
+        tags = [t for t in entry.tags if t.name in ('quick', 'daily') and t.value is not None]
+        for tag in tags:
+            val = tag.value
+            name = tag.name
+            # TODO: temporary; WIP support for @daily(yyyy-mm-dd) for creating "Last Week" etc dirs
+            if name == 'daily':
+                name = 'quick'
+                val = "daily/%s" % val
             parts = val.split('/')
             dir_parts = parts[:-1]
             fname_part = "%s.%s" % (parts[-1], entry.file_extension())
