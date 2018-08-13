@@ -6,6 +6,10 @@
 
 -   Document the `.project` file (and `@project` tag) functionality.
 
+-   Support actually renaming files based on `@quick`.  
+    Seems Alfred and spotlight really don't like to index the names
+    of symlinks.
+
 -   Settings
 
     -   if `JNL_DIR` not specified, read settings file `~/.jnl`?
