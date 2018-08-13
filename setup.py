@@ -13,7 +13,7 @@ setup(
     author_email='github/rtimmons',
     url='https://github.com/rtimmons/jnl',
     packages=['jnl'],
-    scripts=['bin/jnl'],
+    scripts=[],
     entry_points = {
         'console_scripts': ['jnl=jnl.jnl:main'],
     }

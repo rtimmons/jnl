@@ -322,7 +322,7 @@ class System(object):
         self.context = context
 
     def file_contents(self, path):
-        path = os.path.join(os.environ.get('JNL_ORIG_CWD'), path)
+        path = os.path.join(os.getcwd(), path)
         with open(path, "r") as f:
             return f.read()
 
@@ -532,7 +532,7 @@ def empty_fixture_path():
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fixtures', 'empty')
 
 
-if __name__ == "__main__":
+def main():
     main = Main({
         'JNL_DIR': os.environ['JNL_DIR'] if 'JNL_DIR' in os.environ else empty_fixture_path()
     })

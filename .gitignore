@@ -5,3 +5,6 @@ env/
 __pycache__
 *.pyc
 .idea
+build
+dist
+jnl.egg-info
