@@ -122,6 +122,7 @@ class TestDatabase(unittest.TestCase):
         self.has_tags(with_tag[0],
             '@ft',
             '@quick(tickets/PERF-1188)',
+            '@daily(2018-05-30)',
             '@quick(entry-one-one)',
             '@quick(entry-one-two)'
         )
@@ -240,6 +241,9 @@ class TestDatabase(unittest.TestCase):
             'root/quick/tickets': 'dir',
             'root/quick/tickets/PERF-1188.txt':
                 ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/daily': 'dir',
+            'root/quick/daily/2018-05-30.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
             'root/worklogs': 'dir'
         }
 
@@ -267,6 +271,9 @@ class TestDatabase(unittest.TestCase):
             'root/quick/tickets': 'dir',
             'root/quick/tickets/PERF-1188.txt':
                 ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            'root/quick/daily': 'dir',
+            'root/quick/daily/2018-05-30.txt':
+                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
             'root/worklogs': 'dir'
         }
 
@@ -284,4 +291,7 @@ class TestDatabase(unittest.TestCase):
 
         with self.assertRaises(Exception) as _:
             main.context.database.scan()
+
+if __name__ == '__main__':
+    unittest.main()
 

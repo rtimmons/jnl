@@ -9,6 +9,10 @@ import re
 import subprocess
 import shutil
 import glob
+import xattr
+import binascii
+from contextlib import contextmanager
+
 
 class Settings(object):
     def __init__(self, context):
@@ -51,6 +55,12 @@ class Database(object):
         self.entries.append(entry)
         return entry
 
+    # maybe combine all these entry_with_* stuff to have a predicate or something
+    # or at least refactor internal
+
+    def entries_with_project(self, project):
+        return [e for e in self.entries if e.tag_starts_with('project', project)]
+
     def entry_with_guid(self, guid):
         return [e for e in self.entries if e.guid == guid][0]
 
@@ -78,7 +88,11 @@ class Database(object):
             listener.on_pre_scan()
         for entry in self.entries:
             for listener in listeners:
-                listener.on_entry(entry)
+                try:
+                    listener.on_entry(entry)
+                except Exception:
+                    print "Exception on entry %s" % entry
+                    raise
         for listener in listeners:
             listener.on_post_scan()
 
@@ -201,6 +215,7 @@ class Entry(object):
     def tags(self):
         if self._tags is None:
             tags = []
+            # TODO: use self.lines here
             with open(self.file_path()) as f:
                 for line in f:
                     on_line = Tag.parse(line)
@@ -210,9 +225,26 @@ class Entry(object):
             self._tags = [t for t in tags if t is not None]
         return self._tags
 
-    def has_tag(self, name, val):
+    def lines(self):
+        with open(self.file_path()) as f:
+            for line in f:
+                yield line
+
+    def text(self):
+        out = '\n'.join([x for x in self.lines()])
+        return out
+
+    # maybe combine has_tag and tag_starts_with and pass in a predicate for the tag value?
+
+    def has_tag(self, name, val = None):
         return any(
-            t.name == name and t.value == val 
+            t.name == name and (True if val is None else t.value == val)
+            for t in self.tags
+        )
+
+    def tag_starts_with(self, name, prefix):
+        return any(
+            t.name == name and t.value is not None and t.value.startswith(prefix)
             for t in self.tags
         )
 
@@ -250,40 +282,17 @@ class SetsOpenWith(NopListener):
         self.context = context
 
     """The xattr controlling the "Open With" functionality is unfortunately binary.
-    To use a different application, use `xattr -l`
-
-        $ xattr -l $FILE
-        com.apple.LaunchServices.OpenWith:
-        00000000  62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57  |bplist00.......W|
-        00000010  76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62  |versionTpath_..b|
-        00000020  75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10  |undleidentifier.|
-        00000030  00 5F 10 1D 2F 41 70 70 6C 69 63 61 74 69 6F 6E  |._../Application|
-        00000040  73 2F 46 6F 6C 64 69 6E 67 54 65 78 74 2E 61 70  |s/FoldingText.ap|
-        00000050  70 5F 10 1B 63 6F 6D 2E 66 6F 6C 64 69 6E 67 74  |p_..com.foldingt|
-        00000060  65 78 74 2E 46 6F 6C 64 69 6E 67 54 65 78 74 08  |ext.FoldingText.|
-        00000070  0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00  |.../1Q..........|
-        00000080  00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00  |................|
-        00000090  00 00 00 00 00 6F                                |.....o|
-        00000096
+    To use a different application, use `xattr -px`
 
     or with `-px`:
 
         $ xattr -px com.apple.LaunchServices.OpenWith $FILE
         62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57
-        76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62
-        75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10
-        00 5F 10 1D 2F 41 70 70 6C 69 63 61 74 69 6F 6E
-        73 2F 46 6F 6C 64 69 6E 67 54 65 78 74 2E 61 70
-        70 5F 10 1B 63 6F 6D 2E 66 6F 6C 64 69 6E 67 74
-        65 78 74 2E 46 6F 6C 64 69 6E 67 54 65 78 74 08
-        0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00
-        00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
+        [...]
         00 00 00 00 00 6F
-
-    TODO: better support for an arbitrary application that doesn't require the user to modify the source :)
     """
 
-    OPEN_WITH_ATTR = '''
+    OPEN_WITH_ATTR_HEX = re.sub(r'\s*', '', '''
         62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57
         76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62
         75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10
@@ -294,22 +303,28 @@ class SetsOpenWith(NopListener):
         0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00
         00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 6F
-    '''
+    ''', flags=re.M)
+    OPEN_WITH_ATTR = binascii.unhexlify(OPEN_WITH_ATTR_HEX)
 
     def on_entry(self, entry):
         if not entry.has_tag('ft', None):
             return
 
-        return self.context.system.check_call([
-            'xattr', '-wx', 'com.apple.LaunchServices.OpenWith',
-            SetsOpenWith.OPEN_WITH_ATTR,
-            entry.file_path()
-        ])
+        return xattr.setxattr(
+            entry.file_path(),
+            'com.apple.LaunchServices.OpenWith',
+            SetsOpenWith.OPEN_WITH_ATTR
+        )
 
 
 class System(object):
     def __init__(self, context):
         self.context = context
+
+    def file_contents(self, path):
+        path = os.path.join(os.environ.get('JNL_ORIG_CWD'), path)
+        with open(path, "r") as f:
+            return f.read()
 
     def makedirs(self,*args):
         return os.makedirs(*args)
@@ -334,10 +349,14 @@ class System(object):
         This is useful if you have things referring to the file inode itself or
         things that generally get confused about treating a directory as symbolic name."""
         for f in glob.glob(os.path.join(path, '*')):
-            if os.path.isfile(f):
+            if os.path.isfile(f) or os.path.islink(f):
                 os.remove(f)
             else:
-                shutil.rmtree(f)
+                try:
+                    shutil.rmtree(f)
+                except Exception as e:
+                    print("Cannot remove {}/{}".format(path, f))
+                    raise e
 
     def isdir(self, path):
         return os.path.isdir(path)
@@ -345,11 +364,16 @@ class System(object):
     def now(self):
         return datetime.datetime.now()
 
-
 class Symlinker(NopListener):
     def on_entry(self, entry):
-        vals = [t.value for t in entry.tags if t.name == 'quick']
-        for val in vals:
+        tags = [t for t in entry.tags if t.name in ('quick', 'daily') and t.value is not None]
+        for tag in tags:
+            val = tag.value
+            name = tag.name
+            # TODO: temporary; WIP support for @daily(yyyy-mm-dd) for creating "Last Week" etc dirs
+            if name == 'daily':
+                name = 'quick'
+                val = "daily/%s" % val
             parts = val.split('/')
             dir_parts = parts[:-1]
             fname_part = "%s.%s" % (parts[-1], entry.file_extension())
@@ -368,7 +392,7 @@ class Symlinker(NopListener):
 class PreScanQuickCleaner(NopListener):
     def on_pre_scan(self):
         path = self.context.database.path('quick')
-        print("Trying to clean %s" % path)
+        print("Scanning %s" % path)
         if self.context.system.exists(path):
             self.context.system.rmtree(path)
 
@@ -398,6 +422,24 @@ class GuidGenerator(object):
             random.choice(GuidGenerator.LETTERS) for i in range(21)
         ])
 
+class Git(object):
+    def __init__(self, context):
+        self.context = context
+
+    def _run(self, *git_command):
+        command = ['git']
+        command.extend(git_command)
+        with self.context.in_dir():
+            print self.context.system.check_call(command)
+
+    def pull(self):
+        self._run('pull')
+
+    def status(self):
+        self._run('status')
+
+    def autopush(self):
+        self._run('autopush')
 
 class Context(object):
     def __init__(self, environment):
@@ -411,6 +453,7 @@ class Context(object):
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
         self.database = Database(self)
+        self.git = Git(self)
         self.entry_listeners = [
             self.sets_open_with,
             self.symlinker,
@@ -419,6 +462,15 @@ class Context(object):
 
     def __str__(self):
         return "Context()"
+
+    @contextmanager
+    def in_dir(self, *path):
+        old_dir = os.getcwd()
+        try:
+            os.chdir(self.database.path(*path))
+            yield
+        finally:
+            os.chdir(old_dir)
 
 
 class Main(object):
@@ -437,16 +489,35 @@ class Main(object):
             self.context.database.create_entry()
         )
 
+    def sync(self, argv):
+        self.context.git.pull()
+        self.scan(argv)
+        self.context.git.status()
+        if len(argv) > 2 and argv[2] == 'push':
+            self.context.git.autopush()
+
+    def proj(self, argv):
+        if len(argv) < 3:
+            project = self.context.system.file_contents(".project").strip()
+        else:
+            project = argv[2]
+        for e in self.context.database.entries_with_project(project):
+            self.context.opener.open(e)
+
     def run(self, argv):
-        # print "Here with %s, %s" % (self.context.settings.dbdir(), argv)
+        if len(argv) == 1 or argv[1].startswith("p"):
+            return self.proj(argv)
         if argv[1] == "new":
-            self.new(argv)
-        if argv[1] == 'daily':
-            self.daily(argv)
+            return self.new(argv)
+        if argv[1] == 'daily' or argv[1] == 'today':
+            return self.daily(argv)
         if argv[1] == 'scan':
-            self.scan(argv)
+            return self.scan(argv)
         if argv[1] == 'open':
-            self.open(argv)
+            return self.open(argv)
+        if argv[1] == 'sync':
+            return self.sync(argv)
+        raise ValueError("Don't know about action {}".format(argv[1]))
 
     def scan(self, argv):
         self.context.database.scan()
