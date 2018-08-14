@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import model
+import db
 
 import os
 import sys
@@ -223,7 +223,7 @@ class Context(object):
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
-        self.database = model.Database(self)
+        self.database = db.Database(self)
         self.git = Git(self)
         self.entry_listeners = [
             self.sets_open_with,
