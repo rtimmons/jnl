@@ -1,18 +1,10 @@
 #!/usr/bin/env python
 
 import db
+import system
 
-import os
-import sys
-import datetime
-import random
-import os
 import re
-import subprocess
-import shutil
-import glob
-import xattr
-import binascii
+
 from contextlib import contextmanager
 
 
@@ -49,6 +41,9 @@ class NopListener(object):
 
 
 class SetsOpenWith(NopListener):
+    import binascii
+    import xattr
+
     def __init__(self, context):
         self.context = context
 
@@ -88,55 +83,9 @@ class SetsOpenWith(NopListener):
         )
 
 
-class System(object):
-    def __init__(self, context):
-        self.context = context
-
-    def file_contents(self, path):
-        path = os.path.join(os.getcwd(), path)
-        with open(path, "r") as f:
-            return f.read()
-
-    def makedirs(self,*args):
-        return os.makedirs(*args)
-
-    def check_call(self, *args):
-        subprocess.check_call(*args)
-
-    def exists(self, path):
-        return os.path.exists(path)
-
-    def readlink(self, path):
-        return os.readlink(path)
-    
-    def symlink(self, src, dest):
-        return os.symlink(src, dest)
-
-    def unlink(self, path):
-        return os.unlink(path)
-
-    def rmtree(self,path):
-        """Remove everything in a directory but don't remove the directory itself.
-        This is useful if you have things referring to the file inode itself or
-        things that generally get confused about treating a directory as symbolic name."""
-        for f in glob.glob(os.path.join(path, '*')):
-            if os.path.isfile(f) or os.path.islink(f):
-                os.remove(f)
-            else:
-                try:
-                    shutil.rmtree(f)
-                except Exception as e:
-                    print("Cannot remove {}/{}".format(path, f))
-                    raise e
-
-    def isdir(self, path):
-        return os.path.isdir(path)
-
-    def now(self):
-        return datetime.datetime.now()
-
 class Symlinker(NopListener):
     def on_entry(self, entry):
+        import os
         tags = [t for t in entry.tags if t.name in ('quick', 'daily') and t.value is not None]
         for tag in tags:
             val = tag.value
@@ -168,16 +117,9 @@ class PreScanQuickCleaner(NopListener):
             self.context.system.rmtree(path)
 
 
-class WhatDayIsIt(object):
-    def __init__(self, context):
-        self.context = context
-
-    def yyyymmdd(self):
-        now = self.context.system.now()
-        return "%04d-%02d-%02d" % (now.year, now.month, now.day)
-
-
 class GuidGenerator(object):
+    import random
+
     def __init__(self, context):
         self.context = context
 
@@ -193,38 +135,19 @@ class GuidGenerator(object):
             random.choice(GuidGenerator.LETTERS) for i in range(21)
         ])
 
-class Git(object):
-    def __init__(self, context):
-        self.context = context
-
-    def _run(self, *git_command):
-        command = ['git']
-        command.extend(git_command)
-        with self.context.in_dir():
-            print self.context.system.check_call(command)
-
-    def pull(self):
-        self._run('pull')
-
-    def status(self):
-        self._run('status')
-
-    def autopush(self):
-        self._run('autopush')
-
 class Context(object):
     def __init__(self, environment):
         self.environment = environment
-        self.system = System(self)
+        self.system = system.System(self)
         self.opener = Opener(self)
         self.sets_open_with = SetsOpenWith(self)
-        self.what_day_is_it = WhatDayIsIt(self)
+        self.what_day_is_it = system.WhatDayIsIt(self)
         self.guid_generator = GuidGenerator(self)
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
         self.database = db.Database(self)
-        self.git = Git(self)
+        self.git = system.Git(self)
         self.entry_listeners = [
             self.sets_open_with,
             self.symlinker,
@@ -300,10 +223,13 @@ class Main(object):
 
 
 def empty_fixture_path():
+    import os
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fixtures', 'empty')
 
 
 def main():
+    import sys
+    import os
     main = Main({
         'JNL_DIR': os.environ['JNL_DIR'] if 'JNL_DIR' in os.environ else empty_fixture_path()
     })
