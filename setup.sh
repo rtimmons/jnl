@@ -8,5 +8,9 @@ if [ ! -d "venv" ]; then
     pip install virtualenv
     virtualenv venv
     source ./venv/bin/activate
-    pip install -r requirements.txt
+        pip install -r requirements.txt
+    deactivate
 fi
+
+source ./venv/bin/activate
+python ./setup.py develop
