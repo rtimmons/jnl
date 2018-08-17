@@ -230,6 +230,14 @@ class Entry(object):
             for line in f:
                 yield line
 
+    def set_contents(self, contents):
+        with open(self.file_path(), "w") as w:
+            w.write(contents)
+
+    def add_log(self, boo):
+        logs, full = self.logs(boo)
+        self.set_contents("".join(full))
+
     # TODO: this is really a helper method that returns current logs
     #       and can add new ones. Write two wrapper methods to hide this ugly API.
     def logs(self, append=None):
@@ -277,12 +285,6 @@ class Entry(object):
             return out, full
         else:
             return out
-
-    def add_log(self, log_entry):
-        out_lines = []
-        for line in self.lines():
-            pass
-        return out_lines
 
     def text(self):
         out = '\n'.join([x for x in self.lines()])
@@ -561,6 +563,8 @@ class Main(object):
     def run(self, argv):
         if len(argv) == 1 or argv[1].startswith("p"):
             return self.proj(argv)
+        if argv[1] == "log":
+            return self.log(argv)
         if argv[1] == "new":
             return self.new(argv)
         if argv[1] == 'daily' or argv[1] == 'today':
@@ -580,6 +584,13 @@ class Main(object):
         daily = self.context.database.daily_entry()
         self.context.opener.open(daily)
         self.context.database.scan()
+
+    def log(self, argv):
+        daily = self.context.database.daily_entry()
+        logentry = "- " + " ".join(argv[2:])
+        daily.add_log(logentry)
+        # self.context.opener.open(daily)
+        # self.context.database.scan()
 
 
 def empty_fixture_path():
