@@ -120,6 +120,7 @@ class TestDatabase(unittest.TestCase):
         assert len(with_tag) == 1
         assert with_tag[0].guid == 'HMKYKM4NNG4KREW61D55'
         self.has_tags(with_tag[0],
+            '@log',
             '@ft',
             '@quick(tickets/PERF-1188)',
             '@daily(2018-05-30)',

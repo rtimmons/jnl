@@ -1,5 +1,12 @@
 This is a sample entry
 
+## Daily Log @log
+
+- 10:31am: this happened
+- 11:pm: this also happened
+
+# RCS
+
 My Reference: HMKYKM4NNG4KREW61D55  
 @daily(2018-05-30)
 @ft @quick(tickets/PERF-1188)
