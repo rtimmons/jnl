@@ -230,16 +230,26 @@ class Entry(object):
             for line in f:
                 yield line
 
-    def logs(self):
+    # TODO: this is really a helper method that returns current logs
+    #       and can add new ones. Write two wrapper methods to hide this ugly API.
+    def logs(self, append=None):
         out = []
+        full = []
+
+        if append is not None and not(append.startswith('- ')):
+            raise BaseException("Log entries must start with '- '")
 
         # ugh this is a mess
         started_entries = False
         inside_logs = False
         current_log = []
+
+        saw_logs = False
         for line in self.lines():
+            full.append(line)
             if '@log' in line:
                 inside_logs = True
+                saw_logs = True
                 continue
             if inside_logs:
                 if line.startswith('#'):
@@ -254,12 +264,19 @@ class Entry(object):
                     started_entries = True
                 elif started_entries:
                     current_log.append(line)
+            elif saw_logs: # no longer inside logs but saw logs prior
+                full.insert(len(full)-2, append)
+                saw_logs = False
 
         if len(current_log) > 0:
             entry = "\n".join(current_log).strip()
             out.append(entry)
 
-        return out
+        if append is not None:
+            out.append(append)
+            return out, full
+        else:
+            return out
 
     def add_log(self, log_entry):
         out_lines = []
