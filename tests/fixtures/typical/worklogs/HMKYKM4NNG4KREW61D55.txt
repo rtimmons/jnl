@@ -3,7 +3,12 @@ This is a sample entry
 ## Daily Log @log
 
 - 10:31am: this happened
-- 11:pm: this also happened
+- 12:01am: this
+spans
+multiple
+lines
+- 11:00pm: this also happened
+
 
 # RCS
 

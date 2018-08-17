@@ -230,6 +230,43 @@ class Entry(object):
             for line in f:
                 yield line
 
+    def logs(self):
+        out = []
+
+        # ugh this is a mess
+        started_entries = False
+        inside_logs = False
+        current_log = []
+        for line in self.lines():
+            if '@log' in line:
+                inside_logs = True
+                continue
+            if inside_logs:
+                if line.startswith('#'):
+                    inside_logs = False
+                    started_entries = False
+                    continue
+                elif line.startswith('- '):
+                    if started_entries and len(current_log) > 0:
+                        entry = "\n".join(current_log).strip()
+                        out.append(entry)
+                    current_log = [line]
+                    started_entries = True
+                elif started_entries:
+                    current_log.append(line)
+
+        if len(current_log) > 0:
+            entry = "\n".join(current_log).strip()
+            out.append(entry)
+
+        return out
+
+    def add_log(self, log_entry):
+        out_lines = []
+        for line in self.lines():
+            pass
+        return out_lines
+
     def text(self):
         out = '\n'.join([x for x in self.lines()])
         return out

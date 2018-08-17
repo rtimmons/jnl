@@ -128,6 +128,15 @@ class TestDatabase(unittest.TestCase):
             '@quick(entry-one-two)'
         )
 
+    def test_read_logs(self):
+        main, jnl_dir = self.main_with_fixture('typical')
+        entry = main.context.database.entries_with_tag('quick', 'tickets/PERF-1188')[0]
+        assert entry.logs() == [
+            '- 10:31am: this happened',
+            '- 12:01am: this\n\nspans\n\nmultiple\n\nlines',
+            '- 11:00pm: this also happened'
+        ]
+
     def has_tags(self, entry, *tags):
         assert set([str(t) for t in entry.tags]) == set(tags)
 
