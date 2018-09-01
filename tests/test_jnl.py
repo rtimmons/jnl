@@ -8,6 +8,7 @@ bin_dir = os.path.join(os.path.dirname(__file__), '..', 'bin')
 sys.path.insert(0, bin_dir)
 
 import jnl
+import jnl.cli
 
 import unittest
 import mock
@@ -16,7 +17,7 @@ fixture_dir = os.path.join(bin_dir, '..', 'tests', 'fixtures')
 
 class TestTag(unittest.TestCase):
     def parses(self, line, should_have = None):
-        tags = jnl.Tag.parse(line)
+        tags = jnl.db.Tag.parse(line)
         if should_have is None:
             should_have = [line]
         assert [str(tag) for tag in tags] == should_have
@@ -75,7 +76,7 @@ class TestWhatDayIsIt(unittest.TestCase):
         # test of the test
         assert context.system.now().year == 2017
 
-        what = jnl.WhatDayIsIt(context=context)
+        what = jnl.system.WhatDayIsIt(context=context)
         assert what.yyyymmdd() == '2017-02-01'
 
 class TestDatabase(unittest.TestCase):
@@ -88,7 +89,7 @@ class TestDatabase(unittest.TestCase):
         shutil.copytree(source_fixture, jnl_dir)
 
         self.to_cleanup.append(tmp_dir)
-        return jnl.Main({'JNL_DIR': jnl_dir}), jnl_dir
+        return jnl.cli.Main({'JNL_DIR': jnl_dir}), jnl_dir
 
     def setUp(self):
         random.seed(100)
@@ -160,7 +161,7 @@ class TestDatabase(unittest.TestCase):
         entries = main.context.database.entries
         assert len(entries) == 3
 
-        another = jnl.Main({'JNL_DIR': jnl_dir})
+        another = jnl.cli.Main({'JNL_DIR': jnl_dir})
         self.mock_what_day_is_it(another)
 
         assert another is not main
@@ -280,10 +281,10 @@ class TestDatabase(unittest.TestCase):
     def test_cant_create_dupe_symlinks(self):
         main, jnl_dir = self.main_with_fixture('empty')
         one = main.context.database.create_entry([
-            jnl.Tag(name="quick", value="foo")
+            jnl.db.Tag(name="quick", value="foo")
         ])
         two = main.context.database.create_entry([
-            jnl.Tag(name="quick", value="foo")  # same `quick` tag as `one`
+            jnl.db.Tag(name="quick", value="foo")  # same `quick` tag as `one`
         ])
 
         assert one is not two

@@ -42,7 +42,6 @@ class NopListener(object):
 
 class SetsOpenWith(NopListener):
     import binascii
-    import xattr
 
     def __init__(self, context):
         self.context = context
@@ -73,6 +72,7 @@ class SetsOpenWith(NopListener):
     OPEN_WITH_ATTR = binascii.unhexlify(OPEN_WITH_ATTR_HEX)
 
     def on_entry(self, entry):
+        import xattr
         if not entry.has_tag('ft', None):
             return
 
@@ -118,8 +118,6 @@ class PreScanQuickCleaner(NopListener):
 
 
 class GuidGenerator(object):
-    import random
-
     def __init__(self, context):
         self.context = context
 
@@ -131,6 +129,7 @@ class GuidGenerator(object):
     ]
 
     def guid(self):
+        import random
         return "".join([
             random.choice(GuidGenerator.LETTERS) for i in range(21)
         ])

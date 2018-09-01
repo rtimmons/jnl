@@ -15,6 +15,6 @@ setup(
     packages=['jnl'],
     scripts=[],
     entry_points = {
-        'console_scripts': ['jnl=jnl.jnl:main'],
+        'console_scripts': ['jnl=jnl.cli:main'],
     }
  )
