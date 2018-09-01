@@ -52,6 +52,7 @@
 
     -   Simple UI view app like nv but better
     -   Console app?
+    -   Borrow things from [Pext](https://github.com/Pext/Pext)?
     -   generated index page for daily entries and maybe first line or
         two entries
     -   blame view
