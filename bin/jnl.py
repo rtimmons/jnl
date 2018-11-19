@@ -432,6 +432,9 @@ class Git(object):
         with self.context.in_dir():
             print self.context.system.check_call(command)
 
+    def stat(self):
+        self._run('status')
+
     def pull(self):
         self._run('pull')
 
@@ -496,6 +499,9 @@ class Main(object):
         if len(argv) > 2 and argv[2] == 'push':
             self.context.git.autopush()
 
+    def stat(self, argv):
+        self.context.git.status()
+
     def proj(self, argv):
         if len(argv) < 3:
             project = self.context.system.file_contents(".project").strip()
@@ -511,6 +517,8 @@ class Main(object):
             return self.new(argv)
         if argv[1] == 'daily' or argv[1] == 'today':
             return self.daily(argv)
+        if argv[1] == 'stat' or argv[1] == 'st':
+            return self.stat(argv)
         if argv[1] == 'scan':
             return self.scan(argv)
         if argv[1] == 'open':
