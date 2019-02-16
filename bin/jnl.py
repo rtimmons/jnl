@@ -364,6 +364,10 @@ class System(object):
     def now(self):
         return datetime.datetime.now()
 
+def _daily_remap(now, past):
+    pass
+
+
 class Symlinker(NopListener):
     def on_entry(self, entry):
         tags = [t for t in entry.tags if t.name == 'quick' and t.value is not None]
@@ -372,7 +376,8 @@ class Symlinker(NopListener):
             name = tag.name
             parts = val.split('/')
             dir_parts = parts[:-1]
-            fname_part = "%s.%s" % (parts[-1], entry.file_extension())
+            past = parts[-1]
+            fname_part = "%s.%s" % (past, entry.file_extension())
             into_dir = self.context.database.path('quick', *dir_parts)
             symlink = os.path.join(into_dir, fname_part)
             if self.context.system.exists(symlink):
