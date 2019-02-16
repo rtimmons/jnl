@@ -146,7 +146,7 @@ class TestDatabase(unittest.TestCase):
 
         with_tag = main.context.database.entries_with_tag('quick', 'daily/2009-11-28')
         assert len(with_tag) == 1
-        assert with_tag[0].guid == '4ERPQDSH2E1XYA9R656BM' # guaranteed cuz we set random.seed
+        assert with_tag[0].guid == '9XXBSPU775XG3DNEKDB9C' # guaranteed cuz we set random.seed
         self.has_tags(with_tag[0],
             '@ft',
             '@quick(daily/2009-11-28)'
@@ -213,7 +213,7 @@ class TestDatabase(unittest.TestCase):
             path = self._rmroot(path)
             self.files = {
                 k:v
-                for k,v in self.files.iteritems()
+                for k,v in self.files.items()
                 if k == path
             }
 
@@ -227,7 +227,7 @@ class TestDatabase(unittest.TestCase):
         def rmtree(self, to_remove):
             to_remove = self._rmroot(to_remove)
             self.files = {
-                k:v for k,v in self.files.iteritems()
+                k:v for k,v in self.files.items()
                 if not k.startswith(to_remove)
             }
 

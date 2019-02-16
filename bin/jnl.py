@@ -91,7 +91,7 @@ class Database(object):
                 try:
                     listener.on_entry(entry)
                 except Exception:
-                    print "Exception on entry %s" % entry
+                    print("Exception on entry %s" % entry)
                     raise
         for listener in listeners:
             listener.on_post_scan()
@@ -178,7 +178,7 @@ class Entry(object):
                 match = Entry.FILENAME_RE.match(file_name)
                 if match is None:
                     # TODO: add test of this
-                    print("file_name mismatch %s" % file_name)
+                    print(("file_name mismatch %s" % file_name))
                     raise ValueError
                 guid = match.group(1).strip()
         self.guid = guid
@@ -356,7 +356,7 @@ class System(object):
                 try:
                     shutil.rmtree(f)
                 except Exception as e:
-                    print("Cannot remove {}/{}".format(path, f))
+                    print(("Cannot remove {}/{}".format(path, f)))
                     raise e
 
     def isdir(self, path):
@@ -366,6 +366,7 @@ class System(object):
         return datetime.datetime.now()
 
 def _daily_remap(now, past):
+    # print('now='+ now +', past=' + past)
     return past
 
 class Symlinker(NopListener):
@@ -396,7 +397,7 @@ class Symlinker(NopListener):
 class PreScanQuickCleaner(NopListener):
     def on_pre_scan(self):
         path = self.context.database.path('quick')
-        print("Scanning %s" % path)
+        print(("Scanning %s" % path))
         if self.context.system.exists(path):
             self.context.system.rmtree(path)
 
@@ -434,7 +435,7 @@ class Git(object):
         command = ['git']
         command.extend(git_command)
         with self.context.in_dir():
-            print self.context.system.check_call(command)
+            print(self.context.system.check_call(command))
 
     def stat(self):
         self._run('status')
