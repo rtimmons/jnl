@@ -122,7 +122,7 @@ class TestDatabase(unittest.TestCase):
         self.has_tags(with_tag[0],
             '@ft',
             '@quick(tickets/PERF-1188)',
-            '@daily(2018-05-30)',
+            '@quick(daily/2018-05-30)',
             '@quick(entry-one-one)',
             '@quick(entry-one-two)'
         )
