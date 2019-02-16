@@ -183,6 +183,14 @@ class TestDatabase(unittest.TestCase):
         def exists(self, path):
             return self._rmroot(path) in self.files
 
+        def now(self):
+            class YMD:
+                def __init__(self):
+                    self.year  = 2009
+                    self.month = 11
+                    self.day   = 28
+            return YMD()
+
         def isdir(self, path):
             path = self._rmroot(path)
             return path in self.files and self.files[path] == 'dir' # change if using tuple

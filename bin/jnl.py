@@ -266,6 +266,7 @@ class Opener(object):
 class NopListener(object):
     def __init__(self, context):
         self.context = context
+        self.state = {}
 
     def on_entry(self, entry):
         pass
@@ -365,11 +366,12 @@ class System(object):
         return datetime.datetime.now()
 
 def _daily_remap(now, past):
-    pass
-
+    return past
 
 class Symlinker(NopListener):
     def on_entry(self, entry):
+        if self.state.get('yyyymmdd') is None:
+            self.state['yyyymmdd'] = self.context.what_day_is_it.yyyymmdd()
         tags = [t for t in entry.tags if t.name == 'quick' and t.value is not None]
         for tag in tags:
             val = tag.value
@@ -377,6 +379,7 @@ class Symlinker(NopListener):
             parts = val.split('/')
             dir_parts = parts[:-1]
             past = parts[-1]
+            past = _daily_remap(self.state['yyyymmdd'], past)
             fname_part = "%s.%s" % (past, entry.file_extension())
             into_dir = self.context.database.path('quick', *dir_parts)
             symlink = os.path.join(into_dir, fname_part)
