@@ -10,6 +10,9 @@
     Seems Alfred and spotlight really don't like to index the names
     of symlinks.
 
+-   Allow an empty `@quick` tag and use the first h1 as the content
+    (`# Foo` => `@quick(Foo)`)
+
 -   Settings
 
     -   if `JNL_DIR` not specified, read settings file `~/.jnl`?
