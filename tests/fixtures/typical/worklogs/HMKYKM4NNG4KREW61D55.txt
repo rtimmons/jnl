@@ -13,7 +13,7 @@ lines
 # RCS
 
 My Reference: HMKYKM4NNG4KREW61D55  
-@daily(2018-05-30)
+@quick(daily/2018-05-30)
 @ft @quick(tickets/PERF-1188)
 @quick(entry-one-one)
 @quick(entry-one-two)

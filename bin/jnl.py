@@ -91,7 +91,7 @@ class Database(object):
                 try:
                     listener.on_entry(entry)
                 except Exception:
-                    print "Exception on entry %s" % entry
+                    print("Exception on entry %s" % entry)
                     raise
         for listener in listeners:
             listener.on_post_scan()
@@ -178,7 +178,7 @@ class Entry(object):
                 match = Entry.FILENAME_RE.match(file_name)
                 if match is None:
                     # TODO: add test of this
-                    print("file_name mismatch %s" % file_name)
+                    print(("file_name mismatch %s" % file_name))
                     raise ValueError
                 guid = match.group(1).strip()
         self.guid = guid
@@ -322,6 +322,7 @@ class Opener(object):
 class NopListener(object):
     def __init__(self, context):
         self.context = context
+        self.state = {}
 
     def on_entry(self, entry):
         pass
@@ -411,7 +412,7 @@ class System(object):
                 try:
                     shutil.rmtree(f)
                 except Exception as e:
-                    print("Cannot remove {}/{}".format(path, f))
+                    print(("Cannot remove {}/{}".format(path, f)))
                     raise e
 
     def isdir(self, path):
@@ -420,19 +421,23 @@ class System(object):
     def now(self):
         return datetime.datetime.now()
 
+def _daily_remap(now, past):
+    # print('now='+ now +', past=' + past)
+    return past
+
 class Symlinker(NopListener):
     def on_entry(self, entry):
-        tags = [t for t in entry.tags if t.name in ('quick', 'daily') and t.value is not None]
+        if self.state.get('yyyymmdd') is None:
+            self.state['yyyymmdd'] = self.context.what_day_is_it.yyyymmdd()
+        tags = [t for t in entry.tags if t.name == 'quick' and t.value is not None]
         for tag in tags:
             val = tag.value
             name = tag.name
-            # TODO: temporary; WIP support for @daily(yyyy-mm-dd) for creating "Last Week" etc dirs
-            if name == 'daily':
-                name = 'quick'
-                val = "daily/%s" % val
             parts = val.split('/')
             dir_parts = parts[:-1]
-            fname_part = "%s.%s" % (parts[-1], entry.file_extension())
+            past = parts[-1]
+            past = _daily_remap(self.state['yyyymmdd'], past)
+            fname_part = "%s.%s" % (past, entry.file_extension())
             into_dir = self.context.database.path('quick', *dir_parts)
             symlink = os.path.join(into_dir, fname_part)
             if self.context.system.exists(symlink):
@@ -448,7 +453,7 @@ class Symlinker(NopListener):
 class PreScanQuickCleaner(NopListener):
     def on_pre_scan(self):
         path = self.context.database.path('quick')
-        print("Scanning %s" % path)
+        print(("Scanning %s" % path))
         if self.context.system.exists(path):
             self.context.system.rmtree(path)
 
@@ -486,7 +491,7 @@ class Git(object):
         command = ['git']
         command.extend(git_command)
         with self.context.in_dir():
-            print self.context.system.check_call(command)
+            print(self.context.system.check_call(command))
 
     def stat(self):
         self._run('status')
