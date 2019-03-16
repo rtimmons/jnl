@@ -9,3 +9,7 @@ __pycache__
 build
 dist
 *.egg-info
+
+# for node version
+node_modules
+npm-debug.log
