@@ -21,7 +21,7 @@ class Settings(object):
         self.context = context
 
     def dbdir(self) -> str:
-        return self.context.environment['JNL_DIR']
+        return self.context.environment["JNL_DIR"]
 
 
 class Database(object):
@@ -35,25 +35,22 @@ class Database(object):
         out = os.path.join(self.context.settings.dbdir(), *subdirs)
         if not self.context.system.exists(out):
             self.context.system.makedirs(out)
-        assert (self.context.system.isdir(out))
+        assert self.context.system.isdir(out)
         return out
 
     @property
     def entries(self) -> List[Entry]:
         if self._entries is None:
-            my_path = self.path('worklogs')
+            my_path = self.path("worklogs")
             self._entries = [
                 Entry(context=self.context, file_name=f, path=my_path)
                 for f in os.listdir(my_path)
-                if os.path.isfile(os.path.join(my_path, f))
-                and Entry.valid_file_name(f)
+                if os.path.isfile(os.path.join(my_path, f)) and Entry.valid_file_name(f)
             ]
         return self._entries
 
     def create_entry(self, tags: List[Tag] = None) -> Entry:
-        entry = Entry(context=self.context,
-                      tags=tags,
-                      create=True)
+        entry = Entry(context=self.context, tags=tags, create=True)
         self.entries.append(entry)
         return entry
 
@@ -61,7 +58,7 @@ class Database(object):
     # or at least refactor internal
 
     def entries_with_project(self, project: str) -> List[Entry]:
-        return [e for e in self.entries if e.tag_starts_with('project', project)]
+        return [e for e in self.entries if e.tag_starts_with("project", project)]
 
     def entry_with_guid(self, guid: str) -> Entry:
         return [e for e in self.entries if e.guid == guid][0]
@@ -72,15 +69,14 @@ class Database(object):
     def daily_entry(self, yyyymmdd: str = None) -> Entry:
         if yyyymmdd is None:
             yyyymmdd = self.context.what_day_is_it.yyyymmdd()
-        tag_val = 'daily/%s' % yyyymmdd
-        existing = self.entries_with_tag('quick', tag_val)
+        tag_val = "daily/%s" % yyyymmdd
+        existing = self.entries_with_tag("quick", tag_val)
         if not existing:
-            existing = [self.create_entry(
-                tags=[
-                    Tag(name='quick', value=tag_val),
-                    Tag(name='ft')
-                ]
-            )]
+            existing = [
+                self.create_entry(
+                    tags=[Tag(name="quick", value=tag_val), Tag(name="ft")]
+                )
+            ]
         return existing[0]
 
     def scan(self) -> None:
@@ -100,7 +96,8 @@ class Database(object):
 
 
 class Tag(object):
-    TAG_RE = re.compile(r"""
+    TAG_RE = re.compile(
+        r"""
         @
             (               # group 1: tag name
                 [^(\s]+     # anything other than (
@@ -114,7 +111,9 @@ class Tag(object):
             |
             \s*?
         )?
-    """, re.VERBOSE)
+    """,
+        re.VERBOSE,
+    )
 
     @staticmethod
     def parse(line: str) -> List[Tag]:
@@ -146,30 +145,29 @@ class Tag(object):
     def __repr__(self) -> str:
         return "@%s%s" % (
             self.name,
-            "(" + self.value + ")" if self.value is not None else ''
+            "(" + self.value + ")" if self.value is not None else "",
         )
 
 
 class Entry(object):
-    FILENAME_RE = re.compile(r"""
+    FILENAME_RE = re.compile(
+        r"""
         ^
         ([A-Z0-9]+)     # group 1: file name without extension
         \.
         (.*?)           # group 2: extension
         $
-    """, re.X)
+    """,
+        re.X,
+    )
 
     @staticmethod
     def valid_file_name(file_name) -> Optional[Match[AnyStr]]:
         return Entry.FILENAME_RE.match(file_name)
 
-    def __init__(self,
-                 context,
-                 path=None,
-                 file_name=None,
-                 guid=None,
-                 tags=None,
-                 create=False):
+    def __init__(
+        self, context, path=None, file_name=None, guid=None, tags=None, create=False
+    ):
         self.context = context
 
         if guid is None:
@@ -185,7 +183,7 @@ class Entry(object):
         self.guid = guid
 
         if path is None:
-            path = self.context.database.path('worklogs')
+            path = self.context.database.path("worklogs")
         self.path = path
         """dirname of full file_name path"""
 
@@ -202,15 +200,15 @@ class Entry(object):
         return os.path.join(self.path, self.file_name)
 
     def file_extension(self) -> str:
-        return self.file_name.split('.')[-1]
+        return self.file_name.split(".")[-1]
 
     def _create(self) -> None:
-        with open(self.file_path(), 'w+') as f:
-            f.write('\n' * 4)
+        with open(self.file_path(), "w+") as f:
+            f.write("\n" * 4)
             f.write("My Reference: %s  \n" % self.guid)
             for tag in self.tags:
                 f.write(str(tag))
-                f.write('  \n')
+                f.write("  \n")
 
     @property
     def tags(self) -> List[Tag]:
@@ -221,7 +219,7 @@ class Entry(object):
                 for line in f:
                     on_line = Tag.parse(line)
                     tags.extend(on_line)
-                    if [t for t in on_line if t.name == 'noscan']:
+                    if [t for t in on_line if t.name == "noscan"]:
                         break
             self._tags = [t for t in tags if t is not None]
         return self._tags
@@ -232,7 +230,7 @@ class Entry(object):
                 yield line
 
     def text(self) -> str:
-        out = '\n'.join([x for x in self.lines()])
+        out = "\n".join([x for x in self.lines()])
         return out
 
     # maybe combine has_tag and tag_starts_with and pass in a predicate for the tag value?
@@ -258,10 +256,9 @@ class Opener(object):
         self.context = context
 
     def open(self, entry) -> None:
-        return self.context.system.check_call([
-            'open', '-a', 'FoldingText',
-            entry.file_path(),
-        ])
+        return self.context.system.check_call(
+            ["open", "-a", "FoldingText", entry.file_path()]
+        )
 
 
 class NopListener(object):
@@ -294,7 +291,10 @@ class SetsOpenWith(NopListener):
         00 00 00 00 00 6F
     """
 
-    OPEN_WITH_ATTR_HEX = re.sub(r'\s*', '', '''
+    OPEN_WITH_ATTR_HEX = re.sub(
+        r"\s*",
+        "",
+        """
         62 70 6C 69 73 74 30 30 D3 01 02 03 04 05 06 57
         76 65 72 73 69 6F 6E 54 70 61 74 68 5F 10 10 62
         75 6E 64 6C 65 69 64 65 6E 74 69 66 69 65 72 10
@@ -305,18 +305,20 @@ class SetsOpenWith(NopListener):
         0F 17 1C 2F 31 51 00 00 00 00 00 00 01 01 00 00
         00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 6F
-    ''', flags=re.M)
+    """,
+        flags=re.M,
+    )
 
     OPEN_WITH_ATTR = binascii.unhexlify(OPEN_WITH_ATTR_HEX)
 
     def on_entry(self, entry: Entry) -> None:
-        if not entry.has_tag('ft', None):
+        if not entry.has_tag("ft", None):
             return
 
         return xattr.setxattr(
             entry.file_path(),
-            'com.apple.LaunchServices.OpenWith',
-            SetsOpenWith.OPEN_WITH_ATTR
+            "com.apple.LaunchServices.OpenWith",
+            SetsOpenWith.OPEN_WITH_ATTR,
         )
 
 
@@ -326,7 +328,7 @@ class System(object):
 
     @staticmethod
     def file_contents(path):
-        path = os.path.join(os.environ.get('JNL_ORIG_CWD'), path)
+        path = os.path.join(os.environ.get("JNL_ORIG_CWD"), path)
         with open(path, "r") as f:
             return f.read()
 
@@ -345,7 +347,7 @@ class System(object):
     @staticmethod
     def readlink(path):
         return os.readlink(path)
-    
+
     @staticmethod
     def symlink(source, destination):
         return os.symlink(source, destination)
@@ -359,7 +361,7 @@ class System(object):
         """Remove everything in a directory but don't remove the directory itself.
         This is useful if you have things referring to the file inode itself or
         things that generally get confused about treating a directory as symbolic name."""
-        for f in glob.glob(os.path.join(path, '*')):
+        for f in glob.glob(os.path.join(path, "*")):
             if os.path.isfile(f) or os.path.islink(f):
                 os.remove(f)
             else:
@@ -380,16 +382,16 @@ class System(object):
 
 class Symlinker(NopListener):
     def on_entry(self, entry: Entry) -> None:
-        if self.state.get('yyyymmdd') is None:
-            self.state['yyyymmdd'] = self.context.what_day_is_it.yyyymmdd()
-        tags = [t for t in entry.tags if t.name == 'quick' and t.value is not None]
+        if self.state.get("yyyymmdd") is None:
+            self.state["yyyymmdd"] = self.context.what_day_is_it.yyyymmdd()
+        tags = [t for t in entry.tags if t.name == "quick" and t.value is not None]
         for tag in tags:
             val = tag.value
-            parts = val.split('/')
+            parts = val.split("/")
             dir_parts = parts[:-1]
             past = parts[-1]
             filename_part = "%s.%s" % (past, entry.file_extension())
-            into_dir = self.context.database.path('quick', *dir_parts)
+            into_dir = self.context.database.path("quick", *dir_parts)
             symlink = os.path.join(into_dir, filename_part)
             if self.context.system.exists(symlink):
                 existing = self.context.system.readlink(symlink)
@@ -397,13 +399,16 @@ class Symlinker(NopListener):
                     # job already done
                     continue
                 else:
-                    raise ValueError("@quick(%s) owned by %s, so %s can't take it" % (val, existing, entry.file_path()))
+                    raise ValueError(
+                        "@quick(%s) owned by %s, so %s can't take it"
+                        % (val, existing, entry.file_path())
+                    )
             self.context.system.symlink(entry.file_path(), symlink)
 
 
 class PreScanQuickCleaner(NopListener):
     def on_pre_scan(self) -> None:
-        path = self.context.database.path('quick')
+        path = self.context.database.path("quick")
         print(("Scanning %s" % path))
         if self.context.system.exists(path):
             self.context.system.rmtree(path)
@@ -423,17 +428,43 @@ class GuidGenerator(object):
         self.context = context
 
     LETTERS = [
-        '0', '1', '2', '3', '4', '5', '6', '7', '8',
-        '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-        'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'S', 'T',
-        'U', 'W', 'X', 'Y', 'Z',
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "J",
+        "K",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "W",
+        "X",
+        "Y",
+        "Z",
     ]
 
     @staticmethod
     def guid() -> str:
-        return "".join([
-            random.choice(GuidGenerator.LETTERS) for _ in range(21)
-        ])
+        return "".join([random.choice(GuidGenerator.LETTERS) for _ in range(21)])
 
 
 class Git(object):
@@ -441,22 +472,22 @@ class Git(object):
         self.context = context
 
     def _run(self, *git_command: str):
-        command = ['git']
+        command = ["git"]
         command.extend(git_command)
         with self.context.in_dir():
             print(self.context.system.check_call(command))
 
     def stat(self):
-        self._run('status')
+        self._run("status")
 
     def pull(self):
-        self._run('pull')
+        self._run("pull")
 
     def status(self):
-        self._run('status')
+        self._run("status")
 
     def autopush(self):
-        self._run('autopush')
+        self._run("autopush")
 
 
 class Context(object):
@@ -475,7 +506,7 @@ class Context(object):
         self.entry_listeners = [
             self.sets_open_with,
             self.symlinker,
-            self.pre_scan_quick_cleaner
+            self.pre_scan_quick_cleaner,
         ]
 
     def __str__(self):
@@ -498,20 +529,16 @@ class Main(object):
         self.context = Context(environment=environment)
 
     def open(self, argv):
-        self.context.opener.open(
-            self.context.database.entry_with_guid(argv[2])
-        )
+        self.context.opener.open(self.context.database.entry_with_guid(argv[2]))
 
     def new(self, _):
-        self.context.opener.open(
-            self.context.database.create_entry()
-        )
+        self.context.opener.open(self.context.database.create_entry())
 
     def sync(self, argv):
         self.context.git.pull()
         self.scan(argv)
         self.context.git.status()
-        if len(argv) > 2 and argv[2] == 'push':
+        if len(argv) > 2 and argv[2] == "push":
             self.context.git.autopush()
 
     def stat(self, _):
@@ -530,15 +557,15 @@ class Main(object):
             return self.proj(argv)
         if argv[1] == "new":
             return self.new(argv)
-        if argv[1] == 'daily' or argv[1] == 'today':
+        if argv[1] == "daily" or argv[1] == "today":
             return self.daily(argv)
-        if argv[1] == 'stat' or argv[1] == 'st':
+        if argv[1] == "stat" or argv[1] == "st":
             return self.stat(argv)
-        if argv[1] == 'scan':
+        if argv[1] == "scan":
             return self.scan(argv)
-        if argv[1] == 'open':
+        if argv[1] == "open":
             return self.open(argv)
-        if argv[1] == 'sync':
+        if argv[1] == "sync":
             return self.sync(argv)
         raise ValueError("Don't know about action {}".format(argv[1]))
 
@@ -552,11 +579,17 @@ class Main(object):
 
 
 def empty_fixture_path():
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fixtures', 'empty')
+    return os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "fixtures", "empty"
+    )
 
 
 if __name__ == "__main__":
-    main = Main({
-        'JNL_DIR': os.environ['JNL_DIR'] if 'JNL_DIR' in os.environ else empty_fixture_path()
-    })
+    main = Main(
+        {
+            "JNL_DIR": os.environ["JNL_DIR"]
+            if "JNL_DIR" in os.environ
+            else empty_fixture_path()
+        }
+    )
     main.run(sys.argv)
