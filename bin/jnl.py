@@ -28,7 +28,7 @@ class Database(object):
     def __init__(self, context: Context):
         self.context = context
 
-        self._entries = None
+        self._entries: Optional[List[str]] = None
         """Use .entries instead of _entries to ensure it's initialized"""
 
     def path(self, *subdirs: str) -> str:
@@ -131,8 +131,8 @@ class Tag(object):
         if re_match is not None:
             name = re_match.group(1).strip()
             value = re_match.group(2)
-        self._name = name
-        self._value = value
+        self._name: str = name
+        self._value: str = value
 
     @property
     def name(self) -> str:
@@ -166,7 +166,13 @@ class Entry(object):
         return Entry.FILENAME_RE.match(file_name)
 
     def __init__(
-        self, context, path=None, file_name=None, guid=None, tags=None, create=False
+        self,
+        context: Context,
+        path: str = None,
+        file_name: str = None,
+        guid: str = None,
+        tags: List[Tag] = None,
+        create: bool = False,
     ):
         self.context = context
 
@@ -180,18 +186,18 @@ class Entry(object):
                     print(("file_name mismatch %s" % file_name))
                     raise ValueError
                 guid = match.group(1).strip()
-        self.guid = guid
+        self.guid: str = guid
 
         if path is None:
             path = self.context.database.path("worklogs")
-        self.path = path
+        self.path: str = path
         """dirname of full file_name path"""
 
         if file_name is None:
             file_name = "%s.txt" % self.guid
-        self.file_name = file_name
+        self.file_name: str = file_name
 
-        self._tags = tags
+        self._tags: List[Tag] = tags
 
         if create:
             self._create()
@@ -235,13 +241,13 @@ class Entry(object):
 
     # maybe combine has_tag and tag_starts_with and pass in a predicate for the tag value?
 
-    def has_tag(self, name, val=None) -> bool:
+    def has_tag(self, name: str, val: str = None) -> bool:
         return any(
             t.name == name and (True if val is None else t.value == val)
             for t in self.tags
         )
 
-    def tag_starts_with(self, name, prefix) -> bool:
+    def tag_starts_with(self, name: str, prefix: str) -> bool:
         return any(
             t.name == name and t.value is not None and t.value.startswith(prefix)
             for t in self.tags
@@ -252,10 +258,10 @@ class Entry(object):
 
 
 class Opener(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
 
-    def open(self, entry) -> None:
+    def open(self, entry: Entry) -> None:
         return self.context.system.check_call(
             ["open", "-a", "FoldingText", entry.file_path()]
         )
@@ -323,41 +329,41 @@ class SetsOpenWith(NopListener):
 
 
 class System(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
 
     @staticmethod
-    def file_contents(path):
+    def file_contents(path: str):
         path = os.path.join(os.environ.get("JNL_ORIG_CWD"), path)
         with open(path, "r") as f:
             return f.read()
 
     @staticmethod
-    def makedirs(*args):
+    def makedirs(*args: str):
         return os.makedirs(*args)
 
     @staticmethod
-    def check_call(*args):
+    def check_call(*args: str):
         subprocess.check_call(*args)
 
     @staticmethod
-    def exists(path):
+    def exists(path: str):
         return os.path.exists(path)
 
     @staticmethod
-    def readlink(path):
+    def readlink(path: str):
         return os.readlink(path)
 
     @staticmethod
-    def symlink(source, destination):
+    def symlink(source: str, destination: str):
         return os.symlink(source, destination)
 
     @staticmethod
-    def unlink(path):
+    def unlink(path: str):
         return os.unlink(path)
 
     @staticmethod
-    def rmtree(path):
+    def rmtree(path: str):
         """Remove everything in a directory but don't remove the directory itself.
         This is useful if you have things referring to the file inode itself or
         things that generally get confused about treating a directory as symbolic name."""
@@ -372,7 +378,7 @@ class System(object):
                     raise e
 
     @staticmethod
-    def isdir(path):
+    def isdir(path: str):
         return os.path.isdir(path)
 
     @staticmethod
