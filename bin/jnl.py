@@ -13,6 +13,27 @@ import xattr
 import binascii
 from contextlib import contextmanager
 
+import curses
+
+class UI(object):
+
+    def __init__(self, context, argv):
+        self.context = context
+        self.argv = argv
+
+    def _main(self, stdscr):
+        # Clear screen
+        stdscr.clear()
+
+        stdscr.refresh()
+        key = None
+        while key is None or key != 'q':
+            key = stdscr.getkey()
+            stdscr.addstr(str(key))
+
+    def main(self):
+        return curses.wrapper(self._main)
+
 
 class Settings(object):
     def __init__(self, context):
@@ -515,9 +536,15 @@ class Main(object):
         for e in self.context.database.entries_with_project(project):
             self.context.opener.open(e)
 
+    def ui(self, argv):
+        ui = UI(self.context, argv)
+        ui.main()
+
     def run(self, argv):
         if len(argv) == 1 or argv[1].startswith("p"):
             return self.proj(argv)
+        if argv[1] == "ui":
+            return self.ui(argv)
         if argv[1] == "new":
             return self.new(argv)
         if argv[1] == 'daily' or argv[1] == 'today':
