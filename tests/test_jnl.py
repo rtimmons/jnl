@@ -14,8 +14,9 @@ import mock
 
 fixture_dir = os.path.join(bin_dir, '..', 'tests', 'fixtures')
 
+
 class TestTag(unittest.TestCase):
-    def parses(self, line, should_have = None):
+    def parses(self, line, should_have=None):
         tags = jnl.Tag.parse(line)
         if should_have is None:
             should_have = [line]
@@ -32,12 +33,11 @@ class TestTag(unittest.TestCase):
             "@@",
             "@_",
             "@foo(a b)",
-            "@foo(@bar)", # odd
+            "@foo(@bar)",  # odd
             # TODO: support emoji / utf-8 tags
         ]
         for case in cases:
             self.parses(case)
-
 
     def test_multi(self):
         self.parses(
@@ -59,6 +59,7 @@ class TestTag(unittest.TestCase):
             ["@ft", "@done", "@quick(other-foo)", "@abc"]
         )
 
+
 # TODO: case of multiple files saying @quick(something).
 # A symlink can't point to 2 things.
 
@@ -78,9 +79,10 @@ class TestWhatDayIsIt(unittest.TestCase):
         what = jnl.WhatDayIsIt(context=context)
         assert what.yyyymmdd() == '2017-02-01'
 
+
 class TestDatabase(unittest.TestCase):
 
-    def main_with_fixture(self, fixture_name='typical'):
+    def main_with_fixture(self, fixture_name: str = 'typical') -> (jnl.Main, str):
         source_fixture = os.path.join(fixture_dir, fixture_name)
 
         tmp_dir = tempfile.mkdtemp()
@@ -146,11 +148,11 @@ class TestDatabase(unittest.TestCase):
 
         with_tag = main.context.database.entries_with_tag('quick', 'daily/2009-11-28')
         assert len(with_tag) == 1
-        assert with_tag[0].guid == '9XXBSPU775XG3DNEKDB9C' # guaranteed cuz we set random.seed
+        assert with_tag[0].guid == '9XXBSPU775XG3DNEKDB9C'  # guaranteed cuz we set random.seed
         self.has_tags(with_tag[0],
-            '@ft',
-            '@quick(daily/2009-11-28)'
-        )
+                      '@ft',
+                      '@quick(daily/2009-11-28)'
+                      )
 
     def test_uses_existing_daily_entry(self):
         main, jnl_dir = self.main_with_fixture('typical')
@@ -172,7 +174,7 @@ class TestDatabase(unittest.TestCase):
         assert another_daily is not daily
 
     class MockSystem(object):
-        def __init__(self, root, files = {}):
+        def __init__(self, root, files={}):
             self.files = files
             self.calls = []
             self.root = root
@@ -186,14 +188,15 @@ class TestDatabase(unittest.TestCase):
         def now(self):
             class YMD:
                 def __init__(self):
-                    self.year  = 2009
+                    self.year = 2009
                     self.month = 11
-                    self.day   = 28
+                    self.day = 28
+
             return YMD()
 
         def isdir(self, path):
             path = self._rmroot(path)
-            return path in self.files and self.files[path] == 'dir' # change if using tuple
+            return path in self.files and self.files[path] == 'dir'  # change if using tuple
 
         def makedirs(self, *path):
             # TODO: use path as second item in tuple to be consistent
@@ -212,8 +215,8 @@ class TestDatabase(unittest.TestCase):
         def unlink(self, path):
             path = self._rmroot(path)
             self.files = {
-                k:v
-                for k,v in self.files.items()
+                k: v
+                for k, v in self.files.items()
                 if k == path
             }
 
@@ -227,12 +230,12 @@ class TestDatabase(unittest.TestCase):
         def rmtree(self, to_remove):
             to_remove = self._rmroot(to_remove)
             self.files = {
-                k:v for k,v in self.files.items()
+                k: v for k, v in self.files.items()
                 if not k.startswith(to_remove)
             }
 
     def test_creates_symlinks(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        (main, jnl_dir) = self.main_with_fixture('typical')
         msys = TestDatabase.MockSystem(jnl_dir)
         main.context.system = msys
 
@@ -300,6 +303,6 @@ class TestDatabase(unittest.TestCase):
         with self.assertRaises(Exception) as _:
             main.context.database.scan()
 
+
 if __name__ == '__main__':
     unittest.main()
-

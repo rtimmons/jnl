@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os
+from __future__ import annotations
+
 import sys
 import datetime
 import random
@@ -12,43 +13,44 @@ import glob
 import xattr
 import binascii
 from contextlib import contextmanager
+from typing import List, Generator, AnyStr, Dict, Optional, Match
 
 
 class Settings(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
 
-    def dbdir(self):
+    def dbdir(self) -> str:
         return self.context.environment['JNL_DIR']
 
 
 class Database(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
 
         self._entries = None
         """Use .entries instead of _entries to ensure it's initialized"""
 
-    def path(self, *subdirs):
+    def path(self, *subdirs: str) -> str:
         out = os.path.join(self.context.settings.dbdir(), *subdirs)
         if not self.context.system.exists(out):
             self.context.system.makedirs(out)
-        assert(self.context.system.isdir(out))
+        assert (self.context.system.isdir(out))
         return out
 
     @property
-    def entries(self):
+    def entries(self) -> List[Entry]:
         if self._entries is None:
-            mypath = self.path('worklogs')
+            my_path = self.path('worklogs')
             self._entries = [
-                Entry(context=self.context, file_name=f, path=mypath)
-                for f in os.listdir(mypath)
-                if os.path.isfile(os.path.join(mypath, f))
+                Entry(context=self.context, file_name=f, path=my_path)
+                for f in os.listdir(my_path)
+                if os.path.isfile(os.path.join(my_path, f))
                 and Entry.valid_file_name(f)
             ]
         return self._entries
 
-    def create_entry(self, tags=[]):
+    def create_entry(self, tags: List[Tag] = None) -> Entry:
         entry = Entry(context=self.context,
                       tags=tags,
                       create=True)
@@ -58,16 +60,16 @@ class Database(object):
     # maybe combine all these entry_with_* stuff to have a predicate or something
     # or at least refactor internal
 
-    def entries_with_project(self, project):
+    def entries_with_project(self, project: str) -> List[Entry]:
         return [e for e in self.entries if e.tag_starts_with('project', project)]
 
-    def entry_with_guid(self, guid):
+    def entry_with_guid(self, guid: str) -> Entry:
         return [e for e in self.entries if e.guid == guid][0]
 
-    def entries_with_tag(self, name, value):
+    def entries_with_tag(self, name: str, value: str) -> List[Entry]:
         return [e for e in self.entries if e.has_tag(name, value)]
 
-    def daily_entry(self, yyyymmdd = None):
+    def daily_entry(self, yyyymmdd: str = None) -> Entry:
         if yyyymmdd is None:
             yyyymmdd = self.context.what_day_is_it.yyyymmdd()
         tag_val = 'daily/%s' % yyyymmdd
@@ -81,7 +83,7 @@ class Database(object):
             )]
         return existing[0]
 
-    def scan(self):
+    def scan(self) -> None:
         # TODO: multi-thread all of this nonsense
         listeners = self.context.entry_listeners
         for listener in listeners:
@@ -91,14 +93,13 @@ class Database(object):
                 try:
                     listener.on_entry(entry)
                 except Exception:
-                    print("Exception on entry %s" % entry)
+                    print("Listener %s Exception on entry %s" % (listener, entry))
                     raise
         for listener in listeners:
             listener.on_post_scan()
 
 
 class Tag(object):
-
     TAG_RE = re.compile(r"""
         @
             (               # group 1: tag name
@@ -116,7 +117,7 @@ class Tag(object):
     """, re.VERBOSE)
 
     @staticmethod
-    def parse(line):
+    def parse(line: str) -> List[Tag]:
         """Return list of tags"""
         out = []
 
@@ -127,7 +128,7 @@ class Tag(object):
 
         return out
 
-    def __init__(self, re_match = None, name = None, value = None):
+    def __init__(self, re_match: Match[AnyStr] = None, name=None, value=None):
         if re_match is not None:
             name = re_match.group(1).strip()
             value = re_match.group(2)
@@ -135,14 +136,14 @@ class Tag(object):
         self._value = value
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def value(self):
+    def value(self) -> str:
         return self._value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "@%s%s" % (
             self.name,
             "(" + self.value + ")" if self.value is not None else ''
@@ -159,16 +160,16 @@ class Entry(object):
     """, re.X)
 
     @staticmethod
-    def valid_file_name(file_name):
+    def valid_file_name(file_name) -> Optional[Match[AnyStr]]:
         return Entry.FILENAME_RE.match(file_name)
 
     def __init__(self,
                  context,
-                 path = None,
-                 file_name = None,
-                 guid = None,
-                 tags = None,
-                 create = False):
+                 path=None,
+                 file_name=None,
+                 guid=None,
+                 tags=None,
+                 create=False):
         self.context = context
 
         if guid is None:
@@ -197,13 +198,13 @@ class Entry(object):
         if create:
             self._create()
 
-    def file_path(self):
+    def file_path(self) -> str:
         return os.path.join(self.path, self.file_name)
 
-    def file_extension(self):
+    def file_extension(self) -> str:
         return self.file_name.split('.')[-1]
 
-    def _create(self):
+    def _create(self) -> None:
         with open(self.file_path(), 'w+') as f:
             f.write('\n' * 4)
             f.write("My Reference: %s  \n" % self.guid)
@@ -212,7 +213,7 @@ class Entry(object):
                 f.write('  \n')
 
     @property
-    def tags(self):
+    def tags(self) -> List[Tag]:
         if self._tags is None:
             tags = []
             # TODO: use self.lines here
@@ -225,30 +226,30 @@ class Entry(object):
             self._tags = [t for t in tags if t is not None]
         return self._tags
 
-    def lines(self):
+    def lines(self) -> Generator[str]:
         with open(self.file_path()) as f:
             for line in f:
                 yield line
 
-    def text(self):
+    def text(self) -> str:
         out = '\n'.join([x for x in self.lines()])
         return out
 
     # maybe combine has_tag and tag_starts_with and pass in a predicate for the tag value?
 
-    def has_tag(self, name, val = None):
+    def has_tag(self, name, val=None) -> bool:
         return any(
             t.name == name and (True if val is None else t.value == val)
             for t in self.tags
         )
 
-    def tag_starts_with(self, name, prefix):
+    def tag_starts_with(self, name, prefix) -> bool:
         return any(
             t.name == name and t.value is not None and t.value.startswith(prefix)
             for t in self.tags
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s: %s" % (self.file_name, self.tags)
 
 
@@ -256,7 +257,7 @@ class Opener(object):
     def __init__(self, context):
         self.context = context
 
-    def open(self, entry):
+    def open(self, entry) -> None:
         return self.context.system.check_call([
             'open', '-a', 'FoldingText',
             entry.file_path(),
@@ -264,23 +265,23 @@ class Opener(object):
 
 
 class NopListener(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
         self.state = {}
 
-    def on_entry(self, entry):
+    def on_entry(self, entry: Entry) -> None:
         pass
 
-    def on_pre_scan(self):
+    def on_pre_scan(self) -> None:
         pass
 
-    def on_post_scan(self):
+    def on_post_scan(self) -> None:
         pass
 
 
 class SetsOpenWith(NopListener):
-    def __init__(self, context):
-        self.context = context
+    def __init__(self, context: Context):
+        super().__init__(context)
 
     """The xattr controlling the "Open With" functionality is unfortunately binary.
     To use a different application, use `xattr -px`
@@ -305,9 +306,10 @@ class SetsOpenWith(NopListener):
         00 00 00 00 00 07 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 6F
     ''', flags=re.M)
+
     OPEN_WITH_ATTR = binascii.unhexlify(OPEN_WITH_ATTR_HEX)
 
-    def on_entry(self, entry):
+    def on_entry(self, entry: Entry) -> None:
         if not entry.has_tag('ft', None):
             return
 
@@ -322,30 +324,38 @@ class System(object):
     def __init__(self, context):
         self.context = context
 
-    def file_contents(self, path):
+    @staticmethod
+    def file_contents(path):
         path = os.path.join(os.environ.get('JNL_ORIG_CWD'), path)
         with open(path, "r") as f:
             return f.read()
 
-    def makedirs(self,*args):
+    @staticmethod
+    def makedirs(*args):
         return os.makedirs(*args)
 
-    def check_call(self, *args):
+    @staticmethod
+    def check_call(*args):
         subprocess.check_call(*args)
 
-    def exists(self, path):
+    @staticmethod
+    def exists(path):
         return os.path.exists(path)
 
-    def readlink(self, path):
+    @staticmethod
+    def readlink(path):
         return os.readlink(path)
     
-    def symlink(self, src, dest):
-        return os.symlink(src, dest)
+    @staticmethod
+    def symlink(source, destination):
+        return os.symlink(source, destination)
 
-    def unlink(self, path):
+    @staticmethod
+    def unlink(path):
         return os.unlink(path)
 
-    def rmtree(self,path):
+    @staticmethod
+    def rmtree(path):
         """Remove everything in a directory but don't remove the directory itself.
         This is useful if you have things referring to the file inode itself or
         things that generally get confused about treating a directory as symbolic name."""
@@ -359,31 +369,28 @@ class System(object):
                     print(("Cannot remove {}/{}".format(path, f)))
                     raise e
 
-    def isdir(self, path):
+    @staticmethod
+    def isdir(path):
         return os.path.isdir(path)
 
-    def now(self):
+    @staticmethod
+    def now():
         return datetime.datetime.now()
 
-def _daily_remap(now, past):
-    # print('now='+ now +', past=' + past)
-    return past
 
 class Symlinker(NopListener):
-    def on_entry(self, entry):
+    def on_entry(self, entry: Entry) -> None:
         if self.state.get('yyyymmdd') is None:
             self.state['yyyymmdd'] = self.context.what_day_is_it.yyyymmdd()
         tags = [t for t in entry.tags if t.name == 'quick' and t.value is not None]
         for tag in tags:
             val = tag.value
-            name = tag.name
             parts = val.split('/')
             dir_parts = parts[:-1]
             past = parts[-1]
-            past = _daily_remap(self.state['yyyymmdd'], past)
-            fname_part = "%s.%s" % (past, entry.file_extension())
+            filename_part = "%s.%s" % (past, entry.file_extension())
             into_dir = self.context.database.path('quick', *dir_parts)
-            symlink = os.path.join(into_dir, fname_part)
+            symlink = os.path.join(into_dir, filename_part)
             if self.context.system.exists(symlink):
                 existing = self.context.system.readlink(symlink)
                 if existing == entry.file_path():
@@ -395,7 +402,7 @@ class Symlinker(NopListener):
 
 
 class PreScanQuickCleaner(NopListener):
-    def on_pre_scan(self):
+    def on_pre_scan(self) -> None:
         path = self.context.database.path('quick')
         print(("Scanning %s" % path))
         if self.context.system.exists(path):
@@ -403,16 +410,16 @@ class PreScanQuickCleaner(NopListener):
 
 
 class WhatDayIsIt(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
 
-    def yyyymmdd(self):
+    def yyyymmdd(self) -> str:
         now = self.context.system.now()
         return "%04d-%02d-%02d" % (now.year, now.month, now.day)
 
 
 class GuidGenerator(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
 
     LETTERS = [
@@ -422,16 +429,18 @@ class GuidGenerator(object):
         'U', 'W', 'X', 'Y', 'Z',
     ]
 
-    def guid(self):
+    @staticmethod
+    def guid() -> str:
         return "".join([
-            random.choice(GuidGenerator.LETTERS) for i in range(21)
+            random.choice(GuidGenerator.LETTERS) for _ in range(21)
         ])
 
+
 class Git(object):
-    def __init__(self, context):
+    def __init__(self, context: Context):
         self.context = context
 
-    def _run(self, *git_command):
+    def _run(self, *git_command: str):
         command = ['git']
         command.extend(git_command)
         with self.context.in_dir():
@@ -449,8 +458,9 @@ class Git(object):
     def autopush(self):
         self._run('autopush')
 
+
 class Context(object):
-    def __init__(self, environment):
+    def __init__(self, environment: Dict[str, str]):
         self.environment = environment
         self.system = System(self)
         self.opener = Opener(self)
@@ -472,7 +482,7 @@ class Context(object):
         return "Context()"
 
     @contextmanager
-    def in_dir(self, *path):
+    def in_dir(self, *path: str) -> None:
         old_dir = os.getcwd()
         try:
             os.chdir(self.database.path(*path))
@@ -482,17 +492,17 @@ class Context(object):
 
 
 class Main(object):
-    def __init__(self, environment = None):
+    def __init__(self, environment=None):
         if environment is None:
             environment = os.environ
-        self.context = Context(environment = environment)
+        self.context = Context(environment=environment)
 
     def open(self, argv):
         self.context.opener.open(
             self.context.database.entry_with_guid(argv[2])
         )
 
-    def new(self, argv):
+    def new(self, _):
         self.context.opener.open(
             self.context.database.create_entry()
         )
@@ -504,7 +514,7 @@ class Main(object):
         if len(argv) > 2 and argv[2] == 'push':
             self.context.git.autopush()
 
-    def stat(self, argv):
+    def stat(self, _):
         self.context.git.status()
 
     def proj(self, argv):
@@ -532,10 +542,10 @@ class Main(object):
             return self.sync(argv)
         raise ValueError("Don't know about action {}".format(argv[1]))
 
-    def scan(self, argv):
+    def scan(self, _):
         self.context.database.scan()
 
-    def daily(self, argv):
+    def daily(self, _):
         daily = self.context.database.daily_entry()
         self.context.opener.open(daily)
         self.context.database.scan()
