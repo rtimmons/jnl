@@ -13,14 +13,26 @@ import xattr
 import binascii
 from contextlib import contextmanager
 
-import curses
 import typing
+from typing import List
+
+import urwid
+
+
+class Settings: pass
+class Entry: pass
+class Tag: pass
+class Opener: pass
+class System: pass
+class WhatDayIsIt: pass
+class GuidGenerator: pass
+
 
 class Settings(object):
     def __init__(self, context):
         self.context = context
 
-    def dbdir(self):
+    def dbdir(self) -> str:
         return self.context.environment['JNL_DIR']
 
 
@@ -39,7 +51,7 @@ class Database(object):
         return out
 
     @property
-    def entries(self):
+    def entries(self) -> List[Entry]:
         if self._entries is None:
             mypath = self.path('worklogs')
             self._entries = [
@@ -50,7 +62,9 @@ class Database(object):
             ]
         return self._entries
 
-    def create_entry(self, tags=[]):
+    def create_entry(self, tags=None) -> Entry:
+        if tags is None:
+            tags = []
         entry = Entry(context=self.context,
                       tags=tags,
                       create=True)
@@ -60,16 +74,16 @@ class Database(object):
     # maybe combine all these entry_with_* stuff to have a predicate or something
     # or at least refactor internal
 
-    def entries_with_project(self, project):
+    def entries_with_project(self, project) -> List[Entry]:
         return [e for e in self.entries if e.tag_starts_with('project', project)]
 
-    def entry_with_guid(self, guid):
+    def entry_with_guid(self, guid) -> Entry:
         return [e for e in self.entries if e.guid == guid][0]
 
-    def entries_with_tag(self, name, value):
+    def entries_with_tag(self, name, value) -> List[Entry]:
         return [e for e in self.entries if e.has_tag(name, value)]
 
-    def daily_entry(self, yyyymmdd = None):
+    def daily_entry(self, yyyymmdd = None) -> Entry:
         if yyyymmdd is None:
             yyyymmdd = self.context.what_day_is_it.yyyymmdd()
         tag_val = 'daily/%s' % yyyymmdd
@@ -367,9 +381,11 @@ class System(object):
     def now(self):
         return datetime.datetime.now()
 
+
 def _daily_remap(now, past):
     # print('now='+ now +', past=' + past)
     return past
+
 
 class Symlinker(NopListener):
     def on_entry(self, entry):
@@ -488,22 +504,30 @@ class UI(object):
         self.context = context
         self.argv = argv
 
-    def render_entry(self, screen, entry: Entry):
-        screen.addstr(entry.text())
-
-    def _main(self, stdscr):
-        # Clear screen
-        stdscr.clear()
-
-        stdscr.refresh()
-        key = None
-        while key is None or key != 'q':
-            key = stdscr.getkey()
-            if key == 'd':
-                self.render_entry(stdscr, self.context.database.daily_entry())
 
     def main(self):
-        return curses.wrapper(self._main)
+        today = self.context.database.daily_entry()
+        txt = urwid.Text(today.text)
+        fill = urwid.Filler(txt, 'top')
+        loop = urwid.MainLoop(fill)
+        loop.run()
+
+    # def render_entry(self, screen, entry: Entry):
+    #     screen.addstr(entry.text())
+
+    # def _main(self, stdscr):
+    #     # Clear screen
+    #     stdscr.clear()
+    #
+    #     stdscr.refresh()
+    #     key = None
+    #     while key is None or key != 'q':
+    #         key = stdscr.getkey()
+    #         if key == 'd':
+    #             self.render_entry(stdscr, self.context.database.daily_entry())
+    #
+    # def main(self):
+    #     return curses.wrapper(self._main)
 
 
 
