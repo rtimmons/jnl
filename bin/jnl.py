@@ -14,26 +14,7 @@ import binascii
 from contextlib import contextmanager
 
 import curses
-
-class UI(object):
-
-    def __init__(self, context, argv):
-        self.context = context
-        self.argv = argv
-
-    def _main(self, stdscr):
-        # Clear screen
-        stdscr.clear()
-
-        stdscr.refresh()
-        key = None
-        while key is None or key != 'q':
-            key = stdscr.getkey()
-            stdscr.addstr(str(key))
-
-    def main(self):
-        return curses.wrapper(self._main)
-
+import typing
 
 class Settings(object):
     def __init__(self, context):
@@ -500,6 +481,30 @@ class Context(object):
             yield
         finally:
             os.chdir(old_dir)
+
+class UI(object):
+
+    def __init__(self, context, argv):
+        self.context = context
+        self.argv = argv
+
+    def render_entry(self, screen, entry: Entry):
+        screen.addstr(entry.text())
+
+    def _main(self, stdscr):
+        # Clear screen
+        stdscr.clear()
+
+        stdscr.refresh()
+        key = None
+        while key is None or key != 'q':
+            key = stdscr.getkey()
+            if key == 'd':
+                self.render_entry(stdscr, self.context.database.daily_entry())
+
+    def main(self):
+        return curses.wrapper(self._main)
+
 
 
 class Main(object):
