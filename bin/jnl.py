@@ -579,14 +579,20 @@ class Searcher(object):
             pattern
         )
         index = 0
+        options: Dict[int, str] = {}
         for k, v in entries.items():
-            # TODO: print before/after context
-            # TODO: read input char and open entry corresponding to that
-            # TODO: probably want to represent the entries_matching struct
-            #       as an EntryMatch or similar?
+            # TODO: better UX:
+            #    - highlight match
+            #    - indent results
+            #    - only show first match probably or show fewer lines of context
+            #      if multiple matches
             print(index)
             [m.print() for m in v]
+            options[index] = k
             index = index + 1
+        choice = int(input('? '))
+        key_of_choice = options[choice]
+        self.context.opener.open(entries[key_of_choice][0].entry)
 
 
 class Main(object):
