@@ -94,6 +94,15 @@ class Database(object):
         for listener in listeners:
             listener.on_post_scan()
 
+    def entries_matching(self, pattern: Pattern[AnyStr]) -> Dict[str, (Entry, List[Match])]:
+        out: Dict[str, (Entry, List[Match])] = {}
+        for e in self.entries:
+            matches = e.matches(pattern)
+            if matches:
+                out[e.guid] = (e, matches)
+        return out
+
+
 
 class Tag(object):
     TAG_RE = re.compile(
@@ -255,6 +264,15 @@ class Entry(object):
 
     def __repr__(self) -> str:
         return "%s: %s" % (self.file_name, self.tags)
+
+    def matches(self, pattern: Pattern[AnyStr]) -> List[Match[AnyStr]]:
+        # can probably be turned into a nicer comprehension
+        out = []
+        for line in self.lines():
+            match: Optional[Match[AnyStr]] = pattern.match(line)
+            if match:
+                out.append(match)
+        return out
 
 
 class Opener(object):
@@ -528,12 +546,21 @@ class Context(object):
         finally:
             os.chdir(old_dir)
 
+
 class Searcher(object):
     def __init__(self, context: Context):
         self.context = context
 
-    def search(self, pattern: Pattern[AnyStr]):
-        print("Yup")
+    def search(self, pattern: Pattern[AnyStr]) -> None:
+        entries: Dict[str, (Entry, List[Match])] = self.context.database.entries_matching(pattern)
+        index = 0
+        for k, v in entries.items():
+            ent, matches = v
+            # TODO: print before/after context
+            # TODO: read input char and open entry corresponding to that
+            # TODO: probably want to represent the entries_matching struct
+            #       as an EntryMatch or similar?
+            print("{}: {}".format(index, ent))
 
 
 class Main(object):
@@ -556,9 +583,16 @@ class Main(object):
             self.context.git.autopush()
 
     def search(self, argv):
-        pattern: Pattern[AnyStr] = re.compile(argv[2])
-        print(pattern)
-        return self.context.searcher.search(argv)
+        pat_source: str = argv[2]
+
+        if not pat_source.startswith('/'):
+            pattern = re.compile('.*' + pat_source + '.*', re.I)
+        else:
+            if not pat_source.endswith('/'):
+                raise ValueError("Pattern '{}' must begin and end with /".format(pat_source))
+            pat_source = pat_source[1:-1]
+            pattern = re.compile(pat_source)
+        return self.context.searcher.search(pattern)
 
     def stat(self, _):
         self.context.git.status()
