@@ -13,7 +13,7 @@ import glob
 import xattr
 import binascii
 from contextlib import contextmanager
-from typing import List, Generator, AnyStr, Dict, Optional, Match
+from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern
 
 
 class Settings(object):
@@ -514,6 +514,7 @@ class Context(object):
             self.symlinker,
             self.pre_scan_quick_cleaner,
         ]
+        self.searcher = Searcher(self)
 
     def __str__(self):
         return "Context()"
@@ -526,6 +527,13 @@ class Context(object):
             yield
         finally:
             os.chdir(old_dir)
+
+class Searcher(object):
+    def __init__(self, context: Context):
+        self.context = context
+
+    def search(self, pattern: Pattern[AnyStr]):
+        print("Yup")
 
 
 class Main(object):
@@ -547,6 +555,11 @@ class Main(object):
         if len(argv) > 2 and argv[2] == "push":
             self.context.git.autopush()
 
+    def search(self, argv):
+        pattern: Pattern[AnyStr] = re.compile(argv[2])
+        print(pattern)
+        return self.context.searcher.search(argv)
+
     def stat(self, _):
         self.context.git.status()
 
@@ -561,6 +574,8 @@ class Main(object):
     def run(self, argv):
         if len(argv) == 1 or argv[1].startswith("p"):
             return self.proj(argv)
+        if argv[1] == "search":
+            return self.search(argv)
         if argv[1] == "new":
             return self.new(argv)
         if argv[1] == "daily" or argv[1] == "today":
