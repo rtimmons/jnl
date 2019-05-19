@@ -238,7 +238,9 @@ class Entry(object):
             self._tags = [t for t in tags if t is not None]
         return self._tags
 
-    def lines(self, min_index: int = 0, max_index: Optional[int] = None) -> Generator[(str, int)]:
+    def lines(
+        self, min_index: int = 0, max_index: Optional[int] = None
+    ) -> Generator[(str, int)]:
         if min_index < 0 or (max_index is not None and min_index > max_index):
             raise ValueError("Invalid min={} and max={}".format(min_index, max_index))
         line_index = -1
@@ -289,7 +291,7 @@ class EntryMatch(object):
         self.match = match
         self.line_index = line_index
 
-    def print(self, before_context: int=1, after_context: int=1):
+    def print(self, before_context: int = 1, after_context: int = 1):
         min_line = max(0, self.line_index - before_context)
         max_line = self.line_index + after_context
         for (line, line_index) in self.entry.lines(min_line, max_line):
@@ -573,8 +575,9 @@ class Searcher(object):
         self.context = context
 
     def search(self, pattern: Pattern[AnyStr]) -> None:
-        entries: Dict[str, List[EntryMatch]] = \
-            self.context.database.entries_matching(pattern)
+        entries: Dict[str, List[EntryMatch]] = self.context.database.entries_matching(
+            pattern
+        )
         index = 0
         for k, v in entries.items():
             # TODO: print before/after context
@@ -608,11 +611,13 @@ class Main(object):
     def search(self, argv):
         pat_source: str = argv[2]
 
-        if not pat_source.startswith('/'):
-            pattern = re.compile('.*' + pat_source + '.*', re.I)
+        if not pat_source.startswith("/"):
+            pattern = re.compile(".*" + pat_source + ".*", re.I)
         else:
-            if not pat_source.endswith('/'):
-                raise ValueError("Pattern '{}' must begin and end with /".format(pat_source))
+            if not pat_source.endswith("/"):
+                raise ValueError(
+                    "Pattern '{}' must begin and end with /".format(pat_source)
+                )
             pat_source = pat_source[1:-1]
             pattern = re.compile(pat_source)
         return self.context.searcher.search(pattern)
