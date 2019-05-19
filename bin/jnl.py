@@ -94,14 +94,13 @@ class Database(object):
         for listener in listeners:
             listener.on_post_scan()
 
-    def entries_matching(self, pattern: Pattern[AnyStr]) -> Dict[str, (Entry, List[Match])]:
-        out: Dict[str, (Entry, List[Match])] = {}
+    def entries_matching(self, pattern: Pattern[AnyStr]) -> Dict[str, List[EntryMatch]]:
+        out: Dict[str, (Entry, List[EntryMatch])] = {}
         for e in self.entries:
-            matches = e.matches(pattern)
+            matches: List[EntryMatch] = e.matches(pattern)
             if matches:
-                out[e.guid] = (e, matches)
+                out[e.guid] = matches
         return out
-
 
 
 class Tag(object):
@@ -239,10 +238,18 @@ class Entry(object):
             self._tags = [t for t in tags if t is not None]
         return self._tags
 
-    def lines(self) -> Generator[str]:
+    def lines(self, min_index: int = 0, max_index: Optional[int] = None) -> Generator[(str, int)]:
+        if min_index < 0 or (max_index is not None and min_index > max_index):
+            raise ValueError("Invalid min={} and max={}".format(min_index, max_index))
+        line_index = -1
         with open(self.file_path()) as f:
             for line in f:
-                yield line
+                line_index = line_index + 1
+                if max_index is not None and line_index > max_index:
+                    break
+                elif line_index < min_index:
+                    continue
+                yield (line.strip(), line_index)
 
     def text(self) -> str:
         out = "\n".join([x for x in self.lines()])
@@ -265,14 +272,28 @@ class Entry(object):
     def __repr__(self) -> str:
         return "%s: %s" % (self.file_name, self.tags)
 
-    def matches(self, pattern: Pattern[AnyStr]) -> List[Match[AnyStr]]:
+    def matches(self, pattern: Pattern[AnyStr]) -> List[EntryMatch]:
         # can probably be turned into a nicer comprehension
         out = []
-        for line in self.lines():
+        for (line, line_index) in self.lines():
             match: Optional[Match[AnyStr]] = pattern.match(line)
             if match:
-                out.append(match)
+                entry_match = EntryMatch(self, match, line_index)
+                out.append(entry_match)
         return out
+
+
+class EntryMatch(object):
+    def __init__(self, entry: Entry, match: Match[AnyStr], line_index: int):
+        self.entry = entry
+        self.match = match
+        self.line_index = line_index
+
+    def print(self, before_context: int=1, after_context: int=1):
+        min_line = max(0, self.line_index - before_context)
+        max_line = self.line_index + after_context
+        for (line, line_index) in self.entry.lines(min_line, max_line):
+            print(line)
 
 
 class Opener(object):
@@ -552,15 +573,17 @@ class Searcher(object):
         self.context = context
 
     def search(self, pattern: Pattern[AnyStr]) -> None:
-        entries: Dict[str, (Entry, List[Match])] = self.context.database.entries_matching(pattern)
+        entries: Dict[str, List[EntryMatch]] = \
+            self.context.database.entries_matching(pattern)
         index = 0
         for k, v in entries.items():
-            ent, matches = v
             # TODO: print before/after context
             # TODO: read input char and open entry corresponding to that
             # TODO: probably want to represent the entries_matching struct
             #       as an EntryMatch or similar?
-            print("{}: {}".format(index, ent))
+            print(index)
+            [m.print() for m in v]
+            index = index + 1
 
 
 class Main(object):
