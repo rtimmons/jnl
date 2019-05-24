@@ -279,7 +279,7 @@ class Entry(object):
         # can probably be turned into a nicer comprehension
         out = []
         for (line, line_index) in self.lines():
-            match: Optional[Match[AnyStr]] = pattern.match(line)
+            match: Optional[Match[AnyStr]] = pattern.search(line)
             if match:
                 entry_match = EntryMatch(self, match, line_index)
                 out.append(entry_match)
@@ -287,16 +287,23 @@ class Entry(object):
 
 
 class EntryMatch(object):
-    def __init__(self, entry: Entry, match: Match[AnyStr], line_index: int):
+    def __init__(self, entry: Entry, match: Match[AnyStr], matched_line_index: int):
         self.entry = entry
         self.match = match
-        self.line_index = line_index
+        self.matched_line_index = matched_line_index
 
-    def print(self, scr: TextIO, before_context: int = 1, after_context: int = 1):
-        min_line = max(0, self.line_index - before_context)
-        max_line = self.line_index + after_context
+    def print(self, scr: TextIO, before_context: int = 0, after_context: int = 0):
+        min_line = max(0, self.matched_line_index - before_context)
+        max_line = self.matched_line_index + after_context
         for (line, line_index) in self.entry.lines(min_line, max_line):
-            scr.write(line)
+            if line_index == self.matched_line_index:
+                begin, end = self.match.span()
+                scr.write(line[0:begin])
+                scr.write(Fore.YELLOW + line[begin:end])
+                scr.write(line[end:])
+            else:
+                scr.write(line)
+            scr.write('\n')
 
 
 class Opener(object):
@@ -635,7 +642,7 @@ class Main(object):
         pat_source: str = argv[2]
 
         if not pat_source.startswith("/"):
-            pattern = re.compile(".*" + pat_source + ".*", re.I)
+            pattern = re.compile(pat_source, re.I)
         else:
             if not pat_source.endswith("/"):
                 raise ValueError(
