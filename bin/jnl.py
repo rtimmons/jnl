@@ -12,8 +12,9 @@ import shutil
 import glob
 import xattr
 import binascii
+from colorama import init, Fore, Back, Style
 from contextlib import contextmanager
-from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern
+from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
 
 
 class Settings(object):
@@ -291,11 +292,11 @@ class EntryMatch(object):
         self.match = match
         self.line_index = line_index
 
-    def print(self, before_context: int = 1, after_context: int = 1):
+    def print(self, scr: TextIO, before_context: int = 1, after_context: int = 1):
         min_line = max(0, self.line_index - before_context)
         max_line = self.line_index + after_context
         for (line, line_index) in self.entry.lines(min_line, max_line):
-            print(line)
+            scr.write(line)
 
 
 class Opener(object):
@@ -569,16 +570,31 @@ class Context(object):
         finally:
             os.chdir(old_dir)
 
+# TODO: is this really necessary?
+class ColoredUI(object):
+    @contextmanager
+    def colored_screen(self) -> Generator[TextIO]:
+        try:
+            init(autoreset=True)
+            yield sys.stdout
+        finally:
+            pass
+
 
 class Searcher(object):
     def __init__(self, context: Context):
         self.context = context
 
     def search(self, pattern: Pattern[AnyStr]) -> None:
+        ui = ColoredUI()
+        with ui.colored_screen() as scr:
+            return self._search(pattern, scr)
+
+    def _search(self, pattern: Pattern[AnyStr], scr: TextIO) -> None:
         entries: Dict[str, List[EntryMatch]] = self.context.database.entries_matching(
             pattern
         )
-        index = 0
+        index: int = 0
         options: Dict[int, str] = {}
         for k, v in entries.items():
             # TODO: better UX:
@@ -586,8 +602,8 @@ class Searcher(object):
             #    - indent results
             #    - only show first match probably or show fewer lines of context
             #      if multiple matches
-            print(index)
-            [m.print() for m in v]
+            scr.write(Fore.RED + Style.BRIGHT + str(index))
+            [m.print(scr) for m in v]
             options[index] = k
             index = index + 1
         choice = int(input('? '))
