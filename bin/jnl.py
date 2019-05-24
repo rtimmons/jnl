@@ -292,10 +292,11 @@ class EntryMatch(object):
         self.match = match
         self.matched_line_index = matched_line_index
 
-    def print(self, scr: TextIO, before_context: int = 0, after_context: int = 0):
+    def print(self, scr: TextIO, before_context: int = 0, after_context: int = 0, prefix: str = "  "):
         min_line = max(0, self.matched_line_index - before_context)
         max_line = self.matched_line_index + after_context
         for (line, line_index) in self.entry.lines(min_line, max_line):
+            scr.write(prefix)
             if line_index == self.matched_line_index:
                 begin, end = self.match.span()
                 scr.write(line[0:begin])
@@ -604,14 +605,20 @@ class Searcher(object):
         )
         index: int = 0
         options: Dict[int, str] = {}
+        # TODO: this impl is messy and split up between EntryMatch and here
+        # TODO: better sorting
+        scr.write(Fore.LIGHTGREEN_EX + "Found " + str(len(entries)) + ":\n")
+        written = 0
         for k, v in entries.items():
-            # TODO: better UX:
-            #    - highlight match
-            #    - indent results
-            #    - only show first match probably or show fewer lines of context
-            #      if multiple matches
+            if written > 10:
+                break
+            else:
+                written = written + 1
             scr.write(Fore.RED + Style.BRIGHT + str(index))
-            [m.print(scr) for m in v]
+            scr.write('  ')
+            scr.write(Fore.LIGHTYELLOW_EX + v[0].entry.file_name)
+            scr.write('\n')
+            [m.print(scr) for m in v[0:2]]
             options[index] = k
             index = index + 1
         choice = int(input("? "))
