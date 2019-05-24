@@ -570,6 +570,7 @@ class Context(object):
         finally:
             os.chdir(old_dir)
 
+
 # TODO: is this really necessary?
 class ColoredUI(object):
     @contextmanager
@@ -606,7 +607,7 @@ class Searcher(object):
             [m.print(scr) for m in v]
             options[index] = k
             index = index + 1
-        choice = int(input('? '))
+        choice = int(input("? "))
         key_of_choice = options[choice]
         self.context.opener.open(entries[key_of_choice][0].entry)
 
