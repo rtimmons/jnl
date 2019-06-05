@@ -219,7 +219,7 @@ class Entry(object):
 
     def _create(self) -> None:
         with open(self.file_path(), "w+") as f:
-            f.write("\n" * 4)
+            f.write("\n")
             f.write("My Reference: %s  \n" % self.guid)
             for tag in self.tags:
                 f.write(str(tag))
