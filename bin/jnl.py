@@ -292,7 +292,13 @@ class EntryMatch(object):
         self.match = match
         self.matched_line_index = matched_line_index
 
-    def print(self, scr: TextIO, before_context: int = 0, after_context: int = 0, prefix: str = "  "):
+    def print(
+        self,
+        scr: TextIO,
+        before_context: int = 0,
+        after_context: int = 0,
+        prefix: str = "  ",
+    ):
         min_line = max(0, self.matched_line_index - before_context)
         max_line = self.matched_line_index + after_context
         for (line, line_index) in self.entry.lines(min_line, max_line):
@@ -304,7 +310,7 @@ class EntryMatch(object):
                 scr.write(line[end:])
             else:
                 scr.write(line)
-            scr.write('\n')
+            scr.write("\n")
 
 
 class Opener(object):
@@ -615,9 +621,9 @@ class Searcher(object):
             else:
                 written = written + 1
             scr.write(Fore.RED + Style.BRIGHT + str(index))
-            scr.write('  ')
+            scr.write("  ")
             scr.write(Fore.LIGHTYELLOW_EX + v[0].entry.file_name)
-            scr.write('\n')
+            scr.write("\n")
             [m.print(scr) for m in v[0:2]]
             options[index] = k
             index = index + 1
