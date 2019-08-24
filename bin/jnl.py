@@ -412,16 +412,7 @@ class System(object):
 
     @staticmethod
     def symlink(source: str, destination: str):
-        # alisma is used to create OS X aliases which are more robust
-        # for certain applications such as FoldingText and Alfred.
-        # https://eclecticlight.co/taccy-signet-precize-alifix-utiutility-alisma/
-        # Assumes it's on your path.
-        #
-        # alisma is very slow we should probably keep a record
-        # of what we've linked where and use that to check for
-        # what we need to change.
-        with open('/dev/null', 'w+') as devnull:
-            return subprocess.check_call(['alisma', '-a', source, destination], stdout=devnull)
+        return os.symlink(source, destination)
 
     @staticmethod
     def unlink(path: str):
