@@ -12,6 +12,7 @@ import shutil
 import glob
 import xattr
 import binascii
+import dateparser
 from colorama import init, Fore, Back, Style
 from contextlib import contextmanager
 from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
@@ -517,6 +518,8 @@ class WhatDayIsIt(object):
         now = self.context.system.now()
         return "%04d-%02d-%02d" % (now.year, now.month, now.day)
 
+    def parse(self, somedate) -> str:
+        return dateparser.parse(somedate)
 
 class GuidGenerator(object):
     def __init__(self, context: Context):
@@ -716,7 +719,7 @@ class Main(object):
             return self.search(argv)
         if argv[1] == "new":
             return self.new(argv)
-        if argv[1] == "daily" or argv[1] == "today":
+        if argv[1] == "daily" or argv[1] == "today" or argv[1] == "y":
             return self.daily(argv)
         if argv[1] == "stat" or argv[1] == "st":
             return self.stat(argv)
