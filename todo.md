@@ -2,6 +2,9 @@
     Create `summary/weekly.txt`, `summary/monthly.txt`, etc.
     (Bonus points if can bi-directionally edit them!)
 
+-   "Categories" - use `@category(foo)` and have the file
+    symlinked into `foo/${@quick}`.
+
 -   Differentiate between `@quick`, `@daily`, and `@project`.
 
 -   Document the `.project` file (and `@project` tag) functionality.
