@@ -81,12 +81,13 @@ class Database(object):
             ]
         return existing[0]
 
-    def yesterday_entry(self, yyyymmdd_today: str = None) -> Entry:
-        if yyyymmdd_today is None:
-            yyyymmdd_today = self.context.what_day_is_it.yyyymmdd()
+    def yesterday_entry(self) -> Entry:
         existing = [
-            e for e in self.entries_with_tag("quick") if e.is_a_daily_entry()
-        ].sort(key=lambda e: print(e))
+            (e, e.is_a_daily_entry()) for e in self.entries if e.is_a_daily_entry()
+        ]
+        existing.sort(key=lambda tup: tup[1])
+        # -1 ("last item") is today
+        return existing[-2][0]
 
     def scan(self) -> None:
         # TODO: multi-thread all of this nonsense
@@ -721,6 +722,8 @@ class Main(object):
             return self.new(argv)
         if argv[1] == "daily" or argv[1] == "today" or argv[1] == "y":
             return self.daily(argv)
+        if argv[1] == "yesterday":
+            return self.yesterday()
         if argv[1] == "stat" or argv[1] == "st":
             return self.stat(argv)
         if argv[1] == "scan":
@@ -735,7 +738,7 @@ class Main(object):
         self.context.database.scan()
 
     # TODO: finish
-    def yesterday(self, _):
+    def yesterday(self):
         daily = self.context.database.yesterday_entry()
         self.context.opener.open(daily)
         self.context.database.scan()
