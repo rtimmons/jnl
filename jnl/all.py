@@ -755,12 +755,16 @@ def empty_fixture_path():
     )
 
 
-if __name__ == "__main__":
-    main = Main(
+def main(args=sys.argv):
+    mainv = Main(
         {
             "JNL_DIR": os.environ["JNL_DIR"]
             if "JNL_DIR" in os.environ
             else empty_fixture_path()
         }
     )
-    main.run(sys.argv)
+    mainv.run(args)
+
+
+if __name__ == "__main__":
+    main()

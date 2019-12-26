@@ -9,5 +9,8 @@ popd >/dev/null
 JNL_ORIG_CWD="$PWD"
 
 pushd "$root" >/dev/null
-    JNL_ORIG_CWD="$JNL_ORIG_CWD" "$root/venv/bin/python" "$root/bin/jnl.py" "$@"
+    set +u
+        source "$root/venv/bin/activate"
+    set -u
+    JNL_ORIG_CWD="$JNL_ORIG_CWD" jnl "$@"
 popd >/dev/null

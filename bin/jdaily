@@ -6,6 +6,11 @@ pushd "$root" >/dev/null
     root="$(pwd -P)"
 popd >/dev/null
 
+JNL_ORIG_CWD="$PWD"
+
 pushd "$root" >/dev/null
-    "$root/bin/jnl" "daily" "$@"
+    set +u
+        source "$root/venv/bin/activate"
+    set -u
+    JNL_ORIG_CWD="$JNL_ORIG_CWD" jnl today "$@"
 popd >/dev/null

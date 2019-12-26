@@ -1,19 +1,15 @@
 import random
-import sys
 import os
 import shutil
 import tempfile
-
-bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
-sys.path.insert(0, bin_dir)
 
 import jnl
 
 import unittest
 import mock
 
+bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
 fixture_dir = os.path.join(bin_dir, "..", "tests", "fixtures")
-
 
 class TestTag(unittest.TestCase):
     def parses(self, line, should_have=None):
