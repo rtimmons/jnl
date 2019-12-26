@@ -12,6 +12,7 @@ import shutil
 import glob
 import xattr
 import binascii
+import dateparser
 from colorama import init, Fore, Back, Style
 from contextlib import contextmanager
 from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
@@ -64,7 +65,7 @@ class Database(object):
     def entry_with_guid(self, guid: str) -> Entry:
         return [e for e in self.entries if e.guid == guid][0]
 
-    def entries_with_tag(self, name: str, value: str) -> List[Entry]:
+    def entries_with_tag(self, name: str, value: str = None) -> List[Entry]:
         return [e for e in self.entries if e.has_tag(name, value)]
 
     def daily_entry(self, yyyymmdd: str = None) -> Entry:
@@ -79,6 +80,14 @@ class Database(object):
                 )
             ]
         return existing[0]
+
+    def yesterday_entry(self) -> Entry:
+        existing = [
+            (e, e.is_a_daily_entry()) for e in self.entries if e.is_a_daily_entry()
+        ]
+        existing.sort(key=lambda tup: tup[1])
+        # -1 ("last item") is today
+        return existing[-2][0]
 
     def scan(self) -> None:
         # TODO: multi-thread all of this nonsense
@@ -124,6 +133,15 @@ class Tag(object):
         re.VERBOSE,
     )
 
+    DAILY_RE = re.compile(
+        r"""
+        ^
+        daily/(.*?)     # group 1: date
+        $
+        """,
+        re.VERBOSE,
+    )
+
     @staticmethod
     def parse(line: str) -> List[Tag]:
         """Return list of tags"""
@@ -142,6 +160,14 @@ class Tag(object):
             value = re_match.group(2)
         self._name: str = name
         self._value: str = value
+
+    def daily(self) -> Optional[str]:
+        if self.name != "quick" or not self.value:
+            return None
+        match = Tag.DAILY_RE.match(self.value)
+        if match:
+            return match.group(1)
+        return None
 
     @property
     def name(self) -> str:
@@ -210,6 +236,15 @@ class Entry(object):
 
         if create:
             self._create()
+
+    def is_a_daily_entry(self) -> Optional[str]:
+        """
+        :return: if this entry has @quick(daily/X) returns X else None
+        """
+        tags = [t for t in self.tags if t.daily()]
+        if not tags:
+            return None
+        return tags[0].daily()
 
     def file_path(self) -> str:
         return os.path.join(self.path, self.file_name)
@@ -438,7 +473,7 @@ class System(object):
         return os.path.isdir(path)
 
     @staticmethod
-    def now():
+    def now() -> datetime:
         return datetime.datetime.now()
 
 
@@ -484,6 +519,8 @@ class WhatDayIsIt(object):
         now = self.context.system.now()
         return "%04d-%02d-%02d" % (now.year, now.month, now.day)
 
+    def parse(self, somedate) -> str:
+        return dateparser.parse(somedate)
 
 class GuidGenerator(object):
     def __init__(self, context: Context):
@@ -683,8 +720,10 @@ class Main(object):
             return self.search(argv)
         if argv[1] == "new":
             return self.new(argv)
-        if argv[1] == "daily" or argv[1] == "today":
+        if argv[1] == "daily" or argv[1] == "today" or argv[1] == "y":
             return self.daily(argv)
+        if argv[1] == "yesterday":
+            return self.yesterday()
         if argv[1] == "stat" or argv[1] == "st":
             return self.stat(argv)
         if argv[1] == "scan":
@@ -696,6 +735,12 @@ class Main(object):
         raise ValueError("Don't know about action {}".format(argv[1]))
 
     def scan(self, _):
+        self.context.database.scan()
+
+    # TODO: finish
+    def yesterday(self):
+        daily = self.context.database.yesterday_entry()
+        self.context.opener.open(daily)
         self.context.database.scan()
 
     def daily(self, _):
