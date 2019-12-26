@@ -3,6 +3,7 @@
 set -eo pipefail
 
 if [ ! -d "venv" ]; then
+    brew install pyenv
     pyenv install -s
     pyenv rehash
     pip install virtualenv

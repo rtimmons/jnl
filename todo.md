@@ -2,6 +2,9 @@
     Create `summary/weekly.txt`, `summary/monthly.txt`, etc.
     (Bonus points if can bi-directionally edit them!)
 
+-   "Categories" - use `@category(foo)` and have the file
+    symlinked into `foo/${@quick}`.
+
 -   Differentiate between `@quick`, `@daily`, and `@project`.
 
 -   Document the `.project` file (and `@project` tag) functionality.
@@ -9,6 +12,9 @@
 -   Support actually renaming files based on `@quick`.  
     Seems Alfred and spotlight really don't like to index the names
     of symlinks.
+
+-   Allow an empty `@quick` tag and use the first h1 as the content
+    (`# Foo` => `@quick(Foo)`)
 
 -   Settings
 

@@ -4,7 +4,7 @@ import os
 import shutil
 import tempfile
 
-bin_dir = os.path.join(os.path.dirname(__file__), '..', 'bin')
+bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
 sys.path.insert(0, bin_dir)
 
 import jnl
@@ -13,7 +13,8 @@ import jnl.cli
 import unittest
 import mock
 
-fixture_dir = os.path.join(bin_dir, '..', 'tests', 'fixtures')
+fixture_dir = os.path.join(bin_dir, "..", "tests", "fixtures")
+
 
 class TestTag(unittest.TestCase):
     def parses(self, line, should_have = None):
@@ -33,35 +34,33 @@ class TestTag(unittest.TestCase):
             "@@",
             "@_",
             "@foo(a b)",
-            "@foo(@bar)", # odd
+            "@foo(@bar)",  # odd
             # TODO: support emoji / utf-8 tags
         ]
         for case in cases:
             self.parses(case)
 
-
     def test_multi(self):
-        self.parses(
-            "@ft @quick(a-b-c)",
-            ['@ft', '@quick(a-b-c)']
-        )
+        self.parses("@ft @quick(a-b-c)", ["@ft", "@quick(a-b-c)"])
 
     def test_dupe(self):
         self.parses(
             # TODO: should we de-dupe or barf?
             "@ft @ft",
-            ['@ft', '@ft']
+            ["@ft", "@ft"],
         )
 
     def test_triple(self):
         self.parses(
             # TODO: should we de-dupe or barf?
             "@ft @done @quick(other-foo) @abc",
-            ["@ft", "@done", "@quick(other-foo)", "@abc"]
+            ["@ft", "@done", "@quick(other-foo)", "@abc"],
         )
+
 
 # TODO: case of multiple files saying @quick(something).
 # A symlink can't point to 2 things.
+
 
 class TestWhatDayIsIt(unittest.TestCase):
     def test_formats_days(self):
@@ -77,11 +76,10 @@ class TestWhatDayIsIt(unittest.TestCase):
         assert context.system.now().year == 2017
 
         what = jnl.system.WhatDayIsIt(context=context)
-        assert what.yyyymmdd() == '2017-02-01'
+        assert what.yyyymmdd() == "2017-02-01"
 
 class TestDatabase(unittest.TestCase):
-
-    def main_with_fixture(self, fixture_name='typical'):
+    def main_with_fixture(self, fixture_name: str = "typical") -> (jnl.Main, str):
         source_fixture = os.path.join(fixture_dir, fixture_name)
 
         tmp_dir = tempfile.mkdtemp()
@@ -101,31 +99,34 @@ class TestDatabase(unittest.TestCase):
             shutil.rmtree(c)
 
     def test_path(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        main, jnl_dir = self.main_with_fixture("typical")
         assert main.context.database.path() == jnl_dir
 
-        assert os.path.exists(main.context.database.path('quick'))
-        assert os.path.exists(main.context.database.path('quick', 'something_we_create_now'))
+        assert os.path.exists(main.context.database.path("quick"))
+        assert os.path.exists(
+            main.context.database.path("quick", "something_we_create_now")
+        )
 
     def test_list_entries(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        main, jnl_dir = self.main_with_fixture("typical")
         entries = main.context.database.entries
         assert len(entries) == 2
         guids = [e.guid for e in entries]
-        assert guids == ['HMKYKM4NNG4KREW61D55', 'W5BNE202WYF031H7J3RY']
+        assert guids == ["HMKYKM4NNG4KREW61D55", "W5BNE202WYF031H7J3RY"]
 
     def test_entries_with_tags(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        main, jnl_dir = self.main_with_fixture("typical")
 
-        with_tag = main.context.database.entries_with_tag('quick', 'tickets/PERF-1188')
+        with_tag = main.context.database.entries_with_tag("quick", "tickets/PERF-1188")
         assert len(with_tag) == 1
-        assert with_tag[0].guid == 'HMKYKM4NNG4KREW61D55'
-        self.has_tags(with_tag[0],
-            '@ft',
-            '@quick(tickets/PERF-1188)',
-            '@daily(2018-05-30)',
-            '@quick(entry-one-one)',
-            '@quick(entry-one-two)'
+        assert with_tag[0].guid == "HMKYKM4NNG4KREW61D55"
+        self.has_tags(
+            with_tag[0],
+            "@ft",
+            "@quick(tickets/PERF-1188)",
+            "@quick(daily/2018-05-30)",
+            "@quick(entry-one-one)",
+            "@quick(entry-one-two)",
         )
 
     def has_tags(self, entry, *tags):
@@ -133,35 +134,34 @@ class TestDatabase(unittest.TestCase):
 
     def mock_what_day_is_it(self, main):
         what_day_is_it = mock.MagicMock()
-        what_day_is_it.yyyymmdd.return_value = '2009-11-28'
+        what_day_is_it.yyyymmdd.return_value = "2009-11-28"
         main.context.what_day_is_it = what_day_is_it
         return what_day_is_it
 
     def test_creates_daily_entry(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        main, jnl_dir = self.main_with_fixture("typical")
         self.mock_what_day_is_it(main)
 
         daily = main.context.database.daily_entry()
         entries = main.context.database.entries
         assert len(entries) == 3
 
-        with_tag = main.context.database.entries_with_tag('quick', 'daily/2009-11-28')
+        with_tag = main.context.database.entries_with_tag("quick", "daily/2009-11-28")
         assert len(with_tag) == 1
-        assert with_tag[0].guid == '4ERPQDSH2E1XYA9R656BM' # guaranteed cuz we set random.seed
-        self.has_tags(with_tag[0],
-            '@ft',
-            '@quick(daily/2009-11-28)'
-        )
+        assert (
+            with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
+        )  # guaranteed cuz we set random.seed
+        self.has_tags(with_tag[0], "@ft", "@quick(daily/2009-11-28)")
 
     def test_uses_existing_daily_entry(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        main, jnl_dir = self.main_with_fixture("typical")
         self.mock_what_day_is_it(main)
 
         daily = main.context.database.daily_entry()
         entries = main.context.database.entries
         assert len(entries) == 3
 
-        another = jnl.cli.Main({'JNL_DIR': jnl_dir})
+        another = jnl.cli.Main({"JNL_DIR": jnl_dir})
         self.mock_what_day_is_it(another)
 
         assert another is not main
@@ -173,42 +173,47 @@ class TestDatabase(unittest.TestCase):
         assert another_daily is not daily
 
     class MockSystem(object):
-        def __init__(self, root, files = {}):
+        def __init__(self, root, files={}):
             self.files = files
             self.calls = []
             self.root = root
 
         def _rmroot(self, path):
-            return path.replace(self.root, 'root')
+            return path.replace(self.root, "root")
 
         def exists(self, path):
             return self._rmroot(path) in self.files
 
+        def now(self):
+            class YMD:
+                def __init__(self):
+                    self.year = 2009
+                    self.month = 11
+                    self.day = 28
+
+            return YMD()
+
         def isdir(self, path):
             path = self._rmroot(path)
-            return path in self.files and self.files[path] == 'dir' # change if using tuple
+            return (
+                path in self.files and self.files[path] == "dir"
+            )  # change if using tuple
 
         def makedirs(self, *path):
             # TODO: use path as second item in tuple to be consistent
-            self.files[self._rmroot(os.path.join(*path))] = ('dir')
+            self.files[self._rmroot(os.path.join(*path))] = "dir"
 
         def symlink(self, source, link_name):
-            self.files[self._rmroot(link_name)] = (
-                'symlink', self._rmroot(source)
-            )
+            self.files[self._rmroot(link_name)] = ("symlink", self._rmroot(source))
 
         def readlink(self, link):
             typ, path = self.files[self._rmroot(link)]
-            assert typ == 'symlink'
-            return path.replace('root', self.root, 1)
+            assert typ == "symlink"
+            return path.replace("root", self.root, 1)
 
         def unlink(self, path):
             path = self._rmroot(path)
-            self.files = {
-                k:v
-                for k,v in self.files.iteritems()
-                if k == path
-            }
+            self.files = {k: v for k, v in self.files.items() if k == path}
 
         def check_call(self, cmd):
             self.calls.append(cmd)
@@ -220,72 +225,91 @@ class TestDatabase(unittest.TestCase):
         def rmtree(self, to_remove):
             to_remove = self._rmroot(to_remove)
             self.files = {
-                k:v for k,v in self.files.iteritems()
-                if not k.startswith(to_remove)
+                k: v for k, v in self.files.items() if not k.startswith(to_remove)
             }
 
     def test_creates_symlinks(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        (main, jnl_dir) = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
         main.context.system = msys
 
         main.context.database.scan()
 
         assert msys.files == {
-            'root/quick': 'dir',
-            'root/quick/entry-one-one.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/entry-one-two.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/example-tag.txt':
-                ('symlink', 'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
-            'root/quick/tickets': 'dir',
-            'root/quick/tickets/PERF-1188.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/daily': 'dir',
-            'root/quick/daily/2018-05-30.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/worklogs': 'dir'
+            "root/quick": "dir",
+            "root/quick/entry-one-one.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/quick/entry-one-two.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/quick/example-tag.txt": (
+                "symlink",
+                "root/worklogs/W5BNE202WYF031H7J3RY.txt",
+            ),
+            "root/quick/tickets": "dir",
+            "root/quick/tickets/PERF-1188.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/quick/daily": "dir",
+            "root/quick/daily/2018-05-30.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/worklogs": "dir",
         }
 
     def test_creates_symlinks_removes_others(self):
-        main, jnl_dir = self.main_with_fixture('typical')
+        main, jnl_dir = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
         main.context.system = msys
 
         msys.files = {
-            'root/quick': 'dir',
-            'root/quick/some-other-thing-that-we-should-remove.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
+            "root/quick": "dir",
+            "root/quick/some-other-thing-that-we-should-remove.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
         }
 
         main.context.database.scan()
 
         assert msys.files == {
-            'root/quick': 'dir',
-            'root/quick/entry-one-one.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/entry-one-two.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/example-tag.txt':
-                ('symlink', 'root/worklogs/W5BNE202WYF031H7J3RY.txt'),
-            'root/quick/tickets': 'dir',
-            'root/quick/tickets/PERF-1188.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/quick/daily': 'dir',
-            'root/quick/daily/2018-05-30.txt':
-                ('symlink', 'root/worklogs/HMKYKM4NNG4KREW61D55.txt'),
-            'root/worklogs': 'dir'
+            "root/quick": "dir",
+            "root/quick/entry-one-one.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/quick/entry-one-two.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/quick/example-tag.txt": (
+                "symlink",
+                "root/worklogs/W5BNE202WYF031H7J3RY.txt",
+            ),
+            "root/quick/tickets": "dir",
+            "root/quick/tickets/PERF-1188.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/quick/daily": "dir",
+            "root/quick/daily/2018-05-30.txt": (
+                "symlink",
+                "root/worklogs/HMKYKM4NNG4KREW61D55.txt",
+            ),
+            "root/worklogs": "dir",
         }
 
     def test_cant_create_dupe_symlinks(self):
-        main, jnl_dir = self.main_with_fixture('empty')
-        one = main.context.database.create_entry([
-            jnl.db.Tag(name="quick", value="foo")
-        ])
-        two = main.context.database.create_entry([
-            jnl.db.Tag(name="quick", value="foo")  # same `quick` tag as `one`
-        ])
+        main, jnl_dir = self.main_with_fixture("empty")
+        one = main.context.database.create_entry([jnl.db.Tag(name="quick", value="foo")])
+        two = main.context.database.create_entry(
+            [jnl.db.Tag(name="quick", value="foo")]  # same `quick` tag as `one`
+        )
 
         assert one is not two
         assert one != two
@@ -293,6 +317,6 @@ class TestDatabase(unittest.TestCase):
         with self.assertRaises(Exception) as _:
             main.context.database.scan()
 
-if __name__ == '__main__':
-    unittest.main()
 
+if __name__ == "__main__":
+    unittest.main()
