@@ -1,7 +1,10 @@
 import random
-import os
 import shutil
 import tempfile
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import jnl
 
@@ -13,6 +16,7 @@ import jnl.tag
 
 bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
 fixture_dir = os.path.join(bin_dir, "..", "tests", "fixtures")
+
 
 class TestTag(unittest.TestCase):
     def parses(self, line, should_have=None):
@@ -148,7 +152,7 @@ class TestDatabase(unittest.TestCase):
         with_tag = main.context.database.entries_with_tag("quick", "daily/2009-11-28")
         assert len(with_tag) == 1
         assert (
-            with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
+                with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
         )  # guaranteed cuz we set random.seed
         self.has_tags(with_tag[0], "@ft", "@quick(daily/2009-11-28)")
 
@@ -195,7 +199,7 @@ class TestDatabase(unittest.TestCase):
         def isdir(self, path):
             path = self._rmroot(path)
             return (
-                path in self.files and self.files[path] == "dir"
+                    path in self.files and self.files[path] == "dir"
             )  # change if using tuple
 
         def makedirs(self, *path):
