@@ -49,7 +49,7 @@ setup(
     zip_safe=True,
     entry_points={
         'console_scripts': [
-            'jnl = jnl:main'
+            'jnl = jnl.cli:main'
         ]
     }
 )

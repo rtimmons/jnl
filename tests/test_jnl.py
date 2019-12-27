@@ -8,6 +8,7 @@ import jnl
 import unittest
 import mock
 
+import jnl.cli
 import jnl.tag
 
 bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
@@ -77,7 +78,7 @@ class TestWhatDayIsIt(unittest.TestCase):
 
 
 class TestDatabase(unittest.TestCase):
-    def main_with_fixture(self, fixture_name: str = "typical") -> (jnl.Main, str):
+    def main_with_fixture(self, fixture_name: str = "typical") -> (jnl.cli.Main, str):
         source_fixture = os.path.join(fixture_dir, fixture_name)
 
         tmp_dir = tempfile.mkdtemp()
@@ -85,7 +86,7 @@ class TestDatabase(unittest.TestCase):
         shutil.copytree(source_fixture, jnl_dir)
 
         self.to_cleanup.append(tmp_dir)
-        return jnl.Main({"JNL_DIR": jnl_dir}), jnl_dir
+        return jnl.cli.Main({"JNL_DIR": jnl_dir}), jnl_dir
 
     def setUp(self):
         random.seed(100)
@@ -159,7 +160,7 @@ class TestDatabase(unittest.TestCase):
         entries = main.context.database.entries
         assert len(entries) == 3
 
-        another = jnl.Main({"JNL_DIR": jnl_dir})
+        another = jnl.cli.Main({"JNL_DIR": jnl_dir})
         self.mock_what_day_is_it(another)
 
         assert another is not main
