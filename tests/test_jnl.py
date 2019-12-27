@@ -8,12 +8,14 @@ import jnl
 import unittest
 import mock
 
+import jnl.tag
+
 bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
 fixture_dir = os.path.join(bin_dir, "..", "tests", "fixtures")
 
 class TestTag(unittest.TestCase):
     def parses(self, line, should_have=None):
-        tags = jnl.Tag.parse(line)
+        tags = jnl.tag.Tag.parse(line)
         if should_have is None:
             should_have = [line]
         assert [str(tag) for tag in tags] == should_have
@@ -302,9 +304,9 @@ class TestDatabase(unittest.TestCase):
 
     def test_cant_create_dupe_symlinks(self):
         main, jnl_dir = self.main_with_fixture("empty")
-        one = main.context.database.create_entry([jnl.Tag(name="quick", value="foo")])
+        one = main.context.database.create_entry([jnl.tag.Tag(name="quick", value="foo")])
         two = main.context.database.create_entry(
-            [jnl.Tag(name="quick", value="foo")]  # same `quick` tag as `one`
+            [jnl.tag.Tag(name="quick", value="foo")]  # same `quick` tag as `one`
         )
 
         assert one is not two
