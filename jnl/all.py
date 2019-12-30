@@ -289,8 +289,8 @@ class Opener(object):
 
 
 class System(object):
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(self):
+        pass
 
     @staticmethod
     def file_contents(path: str):
@@ -428,7 +428,7 @@ class Git(object):
 class Context(object):
     def __init__(self, environment: Dict[str, str]):
         self.environment = environment
-        self.system = System(self)
+        self.system = System()
         self.opener = Opener(self)
         self.sets_open_with = SetsOpenWith(self)
         self.what_day_is_it = WhatDayIsIt(self)
