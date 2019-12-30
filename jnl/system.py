@@ -1,6 +1,7 @@
 import datetime
 import glob
 import os
+import random
 import shutil
 import subprocess
 
@@ -61,3 +62,47 @@ class System(object):
     @staticmethod
     def now() -> datetime:
         return datetime.datetime.now()
+
+
+class GuidGenerator(object):
+    def __init__(self):
+        pass
+
+    LETTERS = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "J",
+        "K",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "W",
+        "X",
+        "Y",
+        "Z",
+    ]
+
+    @staticmethod
+    def guid() -> str:
+        return "".join([random.choice(GuidGenerator.LETTERS) for _ in range(21)])

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-import random
 import os
 import re
 import dateparser
@@ -11,7 +10,7 @@ from colorama import init, Fore, Style
 from contextlib import contextmanager
 from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
 
-from jnl.system import System
+from .system import System, GuidGenerator
 from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 from .tag import Tag
 
@@ -295,50 +294,6 @@ class WhatDayIsIt(object):
 
     def parse(self, somedate) -> str:
         return dateparser.parse(somedate)
-
-
-class GuidGenerator(object):
-    def __init__(self):
-        pass
-
-    LETTERS = [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "J",
-        "K",
-        "M",
-        "N",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    ]
-
-    @staticmethod
-    def guid() -> str:
-        return "".join([random.choice(GuidGenerator.LETTERS) for _ in range(21)])
 
 
 class Git(object):
