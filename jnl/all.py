@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import sys
-import datetime
 import random
 import os
 import re
-import subprocess
-import shutil
-import glob
 import dateparser
 from colorama import init, Fore, Style
 from contextlib import contextmanager
 from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
 
+from jnl.system import System
 from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 from .tag import Tag
 
@@ -286,64 +283,6 @@ class Opener(object):
         return self.context.system.check_call(
             ["open", "-a", "FoldingText", entry.file_path()]
         )
-
-
-class System(object):
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def file_contents(path: str):
-        path = os.path.join(os.environ.get("JNL_ORIG_CWD"), path)
-        with open(path, "r") as f:
-            return f.read()
-
-    @staticmethod
-    def makedirs(*args: str):
-        return os.makedirs(*args)
-
-    @staticmethod
-    def check_call(*args: str):
-        subprocess.check_call(*args)
-
-    @staticmethod
-    def exists(path: str):
-        return os.path.exists(path)
-
-    @staticmethod
-    def readlink(path: str):
-        return os.readlink(path)
-
-    @staticmethod
-    def symlink(source: str, destination: str):
-        return os.symlink(source, destination)
-
-    @staticmethod
-    def unlink(path: str):
-        return os.unlink(path)
-
-    @staticmethod
-    def rmtree(path: str):
-        """Remove everything in a directory but don't remove the directory itself.
-        This is useful if you have things referring to the file inode itself or
-        things that generally get confused about treating a directory as symbolic name."""
-        for f in glob.glob(os.path.join(path, "*")):
-            if os.path.isfile(f) or os.path.islink(f):
-                os.remove(f)
-            else:
-                try:
-                    shutil.rmtree(f)
-                except Exception as e:
-                    print(("Cannot remove {}/{}".format(path, f)))
-                    raise e
-
-    @staticmethod
-    def isdir(path: str):
-        return os.path.isdir(path)
-
-    @staticmethod
-    def now() -> datetime:
-        return datetime.datetime.now()
 
 
 class WhatDayIsIt(object):
