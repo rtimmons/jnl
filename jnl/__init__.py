@@ -1,4 +1,4 @@
 import jnl.cli
 from jnl.cli import Main
 from . import tag
-from jnl.all import WhatDayIsIt
+from jnl.system import WhatDayIsIt

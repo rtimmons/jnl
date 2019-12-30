@@ -4,6 +4,8 @@ import tempfile
 import os
 import sys
 
+import jnl.system
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import jnl
@@ -77,7 +79,8 @@ class TestWhatDayIsIt(unittest.TestCase):
         # test of the test
         assert context.system.now().year == 2017
 
-        what = jnl.WhatDayIsIt(context=context)
+        # Don't need full "context" anymore could just mock system
+        what = jnl.system.WhatDayIsIt(system=context.system)
         assert what.yyyymmdd() == "2017-02-01"
 
 

@@ -5,12 +5,11 @@ from __future__ import annotations
 import sys
 import os
 import re
-import dateparser
 from colorama import init, Fore, Style
 from contextlib import contextmanager
 from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
 
-from .system import System, GuidGenerator
+from .system import System, GuidGenerator, Opener, WhatDayIsIt
 from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 from .tag import Tag
 
@@ -272,28 +271,6 @@ class EntryMatch(object):
             else:
                 scr.write(line)
             scr.write("\n")
-
-
-class Opener(object):
-    def __init__(self, system: System):
-        self.system = system
-
-    def open(self, entry: Entry) -> None:
-        return self.system.check_call(
-            ["open", "-a", "FoldingText", entry.file_path()]
-        )
-
-
-class WhatDayIsIt(object):
-    def __init__(self, system: System):
-        self.system = system
-
-    def yyyymmdd(self) -> str:
-        now = self.system.now()
-        return "%04d-%02d-%02d" % (now.year, now.month, now.day)
-
-    def parse(self, somedate) -> str:
-        return dateparser.parse(somedate)
 
 
 class Git(object):

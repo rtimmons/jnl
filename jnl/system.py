@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 import subprocess
+import dateparser
 
 
 class System(object):
@@ -106,3 +107,25 @@ class GuidGenerator(object):
     @staticmethod
     def guid() -> str:
         return "".join([random.choice(GuidGenerator.LETTERS) for _ in range(21)])
+
+
+class Opener(object):
+    def __init__(self, system: System):
+        self.system = system
+
+    def open(self, entry: "Entry") -> None:
+        return self.system.check_call(
+            ["open", "-a", "FoldingText", entry.file_path()]
+        )
+
+
+class WhatDayIsIt(object):
+    def __init__(self, system: System):
+        self.system = system
+
+    def yyyymmdd(self) -> str:
+        now = self.system.now()
+        return "%04d-%02d-%02d" % (now.year, now.month, now.day)
+
+    def parse(self, somedate) -> str:
+        return dateparser.parse(somedate)
