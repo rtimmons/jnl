@@ -298,8 +298,8 @@ class WhatDayIsIt(object):
 
 
 class GuidGenerator(object):
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(self):
+        pass
 
     LETTERS = [
         "0",
@@ -371,7 +371,7 @@ class Context(object):
         self.opener = Opener(self)
         self.sets_open_with = SetsOpenWith(self)
         self.what_day_is_it = WhatDayIsIt(self)
-        self.guid_generator = GuidGenerator(self)
+        self.guid_generator = GuidGenerator()
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
