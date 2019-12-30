@@ -275,21 +275,21 @@ class EntryMatch(object):
 
 
 class Opener(object):
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(self, system: System):
+        self.system = system
 
     def open(self, entry: Entry) -> None:
-        return self.context.system.check_call(
+        return self.system.check_call(
             ["open", "-a", "FoldingText", entry.file_path()]
         )
 
 
 class WhatDayIsIt(object):
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(self, system: System):
+        self.system = system
 
     def yyyymmdd(self) -> str:
-        now = self.context.system.now()
+        now = self.system.now()
         return "%04d-%02d-%02d" % (now.year, now.month, now.day)
 
     def parse(self, somedate) -> str:
@@ -323,9 +323,9 @@ class Context(object):
     def __init__(self, environment: Dict[str, str]):
         self.environment = environment
         self.system = System()
-        self.opener = Opener(self)
+        self.opener = Opener(self.system)
         self.sets_open_with = SetsOpenWith(self)
-        self.what_day_is_it = WhatDayIsIt(self)
+        self.what_day_is_it = WhatDayIsIt(self.system)
         self.guid_generator = GuidGenerator()
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
