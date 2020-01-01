@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import sys
 import os
 import re
-from colorama import Fore
+from colorama import init, Fore, Style
 from contextlib import contextmanager
 from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
 
-from .search import Searcher
 from .system import System, GuidGenerator, Opener, WhatDayIsIt
 from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 from .tag import Tag
@@ -246,7 +246,6 @@ class Entry(object):
         return out
 
 
-# TODO: move this and matches to search.py
 class EntryMatch(object):
     def __init__(self, entry: Entry, match: Match[AnyStr], matched_line_index: int):
         self.entry = entry
@@ -315,7 +314,7 @@ class Context(object):
             self.symlinker,
             self.pre_scan_quick_cleaner,
         ]
-        self.searcher = Searcher(database=self.database, opener=self.opener)
+        self.searcher = Searcher(self)
 
     def __str__(self):
         return "Context()"
@@ -330,3 +329,48 @@ class Context(object):
             os.chdir(old_dir)
 
 
+# TODO: is this really necessary?
+class ColoredUI(object):
+    @contextmanager
+    def colored_screen(self) -> Generator[TextIO]:
+        try:
+            init(autoreset=True)
+            yield sys.stdout
+        finally:
+            pass
+
+
+class Searcher(object):
+    def __init__(self, context: Context):
+        self.context = context
+
+    def search(self, pattern: Pattern[AnyStr]) -> None:
+        ui = ColoredUI()
+        with ui.colored_screen() as scr:
+            return self._search(pattern, scr)
+
+    def _search(self, pattern: Pattern[AnyStr], scr: TextIO) -> None:
+        entries: Dict[str, List[EntryMatch]] = self.context.database.entries_matching(
+            pattern
+        )
+        index: int = 0
+        options: Dict[int, str] = {}
+        # TODO: this impl is messy and split up between EntryMatch and here
+        # TODO: better sorting
+        scr.write(Fore.LIGHTGREEN_EX + "Found " + str(len(entries)) + ":\n")
+        written = 0
+        for k, v in entries.items():
+            if written > 10:
+                break
+            else:
+                written = written + 1
+            scr.write(Fore.RED + Style.BRIGHT + str(index))
+            scr.write("  ")
+            scr.write(Fore.LIGHTYELLOW_EX + v[0].entry.file_name)
+            scr.write("\n")
+            [m.print(scr) for m in v[0:2]]
+            options[index] = k
+            index = index + 1
+        choice = int(input("? "))
+        key_of_choice = options[choice]
+        self.context.opener.open(entries[key_of_choice][0].entry)
