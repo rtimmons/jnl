@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
 
 from .system import System, GuidGenerator, Opener, WhatDayIsIt
-from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
+from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner, NopListener
 from .tag import Tag
 
 
@@ -23,17 +23,22 @@ class Settings(object):
 
 
 class Database(object):
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(self, system: System, settings: Settings, guid_generator: GuidGenerator, what_day_is_it: WhatDayIsIt,
+                 entry_listeners: List[NopListener]):
+        self.system = system
+        self.settings = settings
+        self.guid_generator = guid_generator
+        self.what_day_is_it = what_day_is_it
+        self.entry_listeners = entry_listeners
 
         self._entries: Optional[List[str]] = None
         """Use .entries instead of _entries to ensure it's initialized"""
 
     def path(self, *subdirs: str) -> str:
-        out = os.path.join(self.context.settings.dbdir(), *subdirs)
-        if not self.context.system.exists(out):
-            self.context.system.makedirs(out)
-        assert self.context.system.isdir(out)
+        out = os.path.join(self.settings.dbdir(), *subdirs)
+        if not self.system.exists(out):
+            self.system.makedirs(out)
+        assert self.system.isdir(out)
         return out
 
     @property
@@ -41,16 +46,16 @@ class Database(object):
         if self._entries is None:
             my_path = self.path("worklogs")
             self._entries = [
-                Entry(guid_generator=self.context.guid_generator,
-                      database=self.context.database, file_name=f, path=my_path)
+                Entry(guid_generator=self.guid_generator,
+                      database=self, file_name=f, path=my_path)
                 for f in os.listdir(my_path)
                 if os.path.isfile(os.path.join(my_path, f)) and Entry.valid_file_name(f)
             ]
         return self._entries
 
     def create_entry(self, tags: List[Tag] = None) -> Entry:
-        entry = Entry(guid_generator=self.context.guid_generator,
-                      database=self.context.database, tags=tags, create=True)
+        entry = Entry(guid_generator=self.guid_generator,
+                      database=self, tags=tags, create=True)
         self.entries.append(entry)
         return entry
 
@@ -68,7 +73,7 @@ class Database(object):
 
     def daily_entry(self, yyyymmdd: str = None) -> Entry:
         if yyyymmdd is None:
-            yyyymmdd = self.context.what_day_is_it.yyyymmdd()
+            yyyymmdd = self.what_day_is_it.yyyymmdd()
         tag_val = "daily/%s" % yyyymmdd
         existing = self.entries_with_tag("quick", tag_val)
         if not existing:
@@ -89,7 +94,7 @@ class Database(object):
 
     def scan(self) -> None:
         # TODO: multi-thread all of this nonsense
-        listeners = self.context.entry_listeners
+        listeners = self.entry_listeners
         for listener in listeners:
             listener.on_pre_scan()
         for entry in self.entries:
@@ -311,13 +316,16 @@ class Context(object):
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
-        self.database = Database(self)
+        self.database = Database(system=self.system,
+                                 settings=self.settings,
+                                 guid_generator=self.guid_generator,
+                                 what_day_is_it=self.what_day_is_it,
+                                 entry_listeners=[
+                                     self.sets_open_with,
+                                     self.symlinker,
+                                     self.pre_scan_quick_cleaner,
+                                 ])
         self.git = Git(self)
-        self.entry_listeners = [
-            self.sets_open_with,
-            self.symlinker,
-            self.pre_scan_quick_cleaner,
-        ]
         self.searcher = Searcher(self)
 
     def __str__(self):
