@@ -41,14 +41,16 @@ class Database(object):
         if self._entries is None:
             my_path = self.path("worklogs")
             self._entries = [
-                Entry(context=self.context, file_name=f, path=my_path)
+                Entry(guid_generator=self.context.guid_generator,
+                      database=self.context.database, file_name=f, path=my_path)
                 for f in os.listdir(my_path)
                 if os.path.isfile(os.path.join(my_path, f)) and Entry.valid_file_name(f)
             ]
         return self._entries
 
     def create_entry(self, tags: List[Tag] = None) -> Entry:
-        entry = Entry(context=self.context, tags=tags, create=True)
+        entry = Entry(guid_generator=self.context.guid_generator,
+                      database=self.context.database, tags=tags, create=True)
         self.entries.append(entry)
         return entry
 
@@ -127,18 +129,20 @@ class Entry(object):
 
     def __init__(
         self,
-        context: Context,
+        guid_generator: GuidGenerator,
+        database: Database,
         path: str = None,
         file_name: str = None,
         guid: str = None,
         tags: List[Tag] = None,
         create: bool = False,
     ):
-        self.context = context
+        self.guid_generator = guid_generator
+        self.database = database
 
         if guid is None:
             if file_name is None:
-                guid = self.context.guid_generator.guid()
+                guid = self.guid_generator.guid()
             else:
                 match = Entry.FILENAME_RE.match(file_name)
                 if match is None:
@@ -149,7 +153,7 @@ class Entry(object):
         self.guid: str = guid
 
         if path is None:
-            path = self.context.database.path("worklogs")
+            path = self.database.path("worklogs")
         self.path: str = path
         """dirname of full file_name path"""
 
