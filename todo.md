@@ -64,6 +64,7 @@
     -   blame view
     -   grep view
     -   group by topic/tag {all sections with particular @tag together}
+    - https://github.com/vinta/awesome-python#command-line-interface-development
 
 -   Support multiple JNL dirs
 
