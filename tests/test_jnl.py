@@ -1,23 +1,28 @@
 import random
-import sys
-import os
 import shutil
 import tempfile
+import os
+import sys
 
-bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
-sys.path.insert(0, bin_dir)
+import jnl.system
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import jnl
 
 import unittest
 import mock
 
+import jnl.cli
+import jnl.tag
+
+bin_dir = os.path.join(os.path.dirname(__file__), "..", "bin")
 fixture_dir = os.path.join(bin_dir, "..", "tests", "fixtures")
 
 
 class TestTag(unittest.TestCase):
     def parses(self, line, should_have=None):
-        tags = jnl.Tag.parse(line)
+        tags = jnl.tag.Tag.parse(line)
         if should_have is None:
             should_have = [line]
         assert [str(tag) for tag in tags] == should_have
@@ -74,12 +79,13 @@ class TestWhatDayIsIt(unittest.TestCase):
         # test of the test
         assert context.system.now().year == 2017
 
-        what = jnl.WhatDayIsIt(context=context)
+        # Don't need full "context" anymore could just mock system
+        what = jnl.system.WhatDayIsIt(system=context.system)
         assert what.yyyymmdd() == "2017-02-01"
 
 
 class TestDatabase(unittest.TestCase):
-    def main_with_fixture(self, fixture_name: str = "typical") -> (jnl.Main, str):
+    def main_with_fixture(self, fixture_name: str = "typical") -> (jnl.cli.Main, str):
         source_fixture = os.path.join(fixture_dir, fixture_name)
 
         tmp_dir = tempfile.mkdtemp()
@@ -87,7 +93,7 @@ class TestDatabase(unittest.TestCase):
         shutil.copytree(source_fixture, jnl_dir)
 
         self.to_cleanup.append(tmp_dir)
-        return jnl.Main({"JNL_DIR": jnl_dir}), jnl_dir
+        return jnl.cli.Main({"JNL_DIR": jnl_dir}), jnl_dir
 
     def setUp(self):
         random.seed(100)
@@ -149,7 +155,7 @@ class TestDatabase(unittest.TestCase):
         with_tag = main.context.database.entries_with_tag("quick", "daily/2009-11-28")
         assert len(with_tag) == 1
         assert (
-            with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
+                with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
         )  # guaranteed cuz we set random.seed
         self.has_tags(with_tag[0], "@ft", "@quick(daily/2009-11-28)")
 
@@ -161,7 +167,7 @@ class TestDatabase(unittest.TestCase):
         entries = main.context.database.entries
         assert len(entries) == 3
 
-        another = jnl.Main({"JNL_DIR": jnl_dir})
+        another = jnl.cli.Main({"JNL_DIR": jnl_dir})
         self.mock_what_day_is_it(another)
 
         assert another is not main
@@ -196,7 +202,7 @@ class TestDatabase(unittest.TestCase):
         def isdir(self, path):
             path = self._rmroot(path)
             return (
-                path in self.files and self.files[path] == "dir"
+                    path in self.files and self.files[path] == "dir"
             )  # change if using tuple
 
         def makedirs(self, *path):
@@ -231,7 +237,7 @@ class TestDatabase(unittest.TestCase):
     def test_creates_symlinks(self):
         (main, jnl_dir) = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
-        main.context.system = msys
+        main.context.database.system = msys
 
         main.context.database.scan()
 
@@ -306,9 +312,9 @@ class TestDatabase(unittest.TestCase):
 
     def test_cant_create_dupe_symlinks(self):
         main, jnl_dir = self.main_with_fixture("empty")
-        one = main.context.database.create_entry([jnl.Tag(name="quick", value="foo")])
+        one = main.context.database.create_entry([jnl.tag.Tag(name="quick", value="foo")])
         two = main.context.database.create_entry(
-            [jnl.Tag(name="quick", value="foo")]  # same `quick` tag as `one`
+            [jnl.tag.Tag(name="quick", value="foo")]  # same `quick` tag as `one`
         )
 
         assert one is not two
