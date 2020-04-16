@@ -237,7 +237,7 @@ class TestDatabase(unittest.TestCase):
     def test_creates_symlinks(self):
         (main, jnl_dir) = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
-        main.context.system = msys
+        main.context.database.system = msys
 
         main.context.database.scan()
 
