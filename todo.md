@@ -90,6 +90,9 @@
     -   explain how to modify the `.app` to call `jdaily`
     -   suggested git hook to run `jnl scan`
 
+-   better `jnl search` experience: allow searching for/within
+    files modified in last N days.
+
 <!--
 Integrate with fancy CI tooling:
 
