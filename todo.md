@@ -64,7 +64,8 @@
     -   blame view
     -   grep view
     -   group by topic/tag {all sections with particular @tag together}
-    - https://github.com/vinta/awesome-python#command-line-interface-development
+    -   https://github.com/vinta/awesome-python#command-line-interface-development
+    -   What would something like [this](https://github.com/xwmx/nb) do?
 
 -   Support multiple JNL dirs
 
