@@ -122,14 +122,7 @@ brew install pyenv
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
 echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
 
-CFLAGS="-I$(brew --prefix openssl)/include" \
-    LDFLAGS="-L$(brew --prefix openssl)/lib" \
-    pyenv install -v 2.7.10
-
-pip install -r requirements.txt
-
-# something, something, something to install virtualenv
-virtualenv -p python3 envname
+./setup.sh
 ```
 
 Then restart your shell (what is this, windows?!).
@@ -138,7 +131,8 @@ Then restart your shell (what is this, windows?!).
 ## Test
 
 ```sh
-# after setting up virtualenv and pip installing
+# after running setup.sh
+source ./venv/bin/activate
 pytest
 ```
 
