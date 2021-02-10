@@ -72,4 +72,3 @@ class Tag(object):
             self.name,
             "(" + self.value + ")" if self.value is not None else "",
         )
-

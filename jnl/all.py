@@ -7,7 +7,17 @@ import os
 import re
 from colorama import init, Fore, Style
 from contextlib import contextmanager
-from typing import List, Generator, AnyStr, Dict, Optional, Match, Pattern, TextIO
+from typing import (
+    List,
+    Generator,
+    AnyStr,
+    Dict,
+    Optional,
+    Match,
+    Pattern,
+    TextIO,
+    Tuple,
+)
 
 from .system import System, GuidGenerator, Opener, WhatDayIsIt
 from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner, NopListener
@@ -23,8 +33,14 @@ class Settings(object):
 
 
 class Database(object):
-    def __init__(self, system: System, settings: Settings, guid_generator: GuidGenerator, what_day_is_it: WhatDayIsIt,
-                 entry_listeners: List[NopListener]):
+    def __init__(
+        self,
+        system: System,
+        settings: Settings,
+        guid_generator: GuidGenerator,
+        what_day_is_it: WhatDayIsIt,
+        entry_listeners: List[NopListener],
+    ):
         self.system = system
         self.settings = settings
         self.guid_generator = guid_generator
@@ -46,16 +62,21 @@ class Database(object):
         if self._entries is None:
             my_path = self.path("worklogs")
             self._entries = [
-                Entry(guid_generator=self.guid_generator,
-                      database=self, file_name=f, path=my_path)
+                Entry(
+                    guid_generator=self.guid_generator,
+                    database=self,
+                    file_name=f,
+                    path=my_path,
+                )
                 for f in os.listdir(my_path)
                 if os.path.isfile(os.path.join(my_path, f)) and Entry.valid_file_name(f)
             ]
         return self._entries
 
     def create_entry(self, tags: List[Tag] = None) -> Entry:
-        entry = Entry(guid_generator=self.guid_generator,
-                      database=self, tags=tags, create=True)
+        entry = Entry(
+            guid_generator=self.guid_generator, database=self, tags=tags, create=True
+        )
         self.entries.append(entry)
         return entry
 
@@ -85,7 +106,7 @@ class Database(object):
         return existing[0]
 
     def yesterday_entry(self) -> Entry:
-        existing = [
+        existing: List[Tuple[Entry, Optional[str]]] = [
             (e, e.is_a_daily_entry()) for e in self.entries if e.is_a_daily_entry()
         ]
         existing.sort(key=lambda tup: tup[1])
@@ -316,15 +337,17 @@ class Context(object):
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
-        self.database = Database(system=self.system,
-                                 settings=self.settings,
-                                 guid_generator=self.guid_generator,
-                                 what_day_is_it=self.what_day_is_it,
-                                 entry_listeners=[
-                                     self.sets_open_with,
-                                     self.symlinker,
-                                     self.pre_scan_quick_cleaner,
-                                 ])
+        self.database = Database(
+            system=self.system,
+            settings=self.settings,
+            guid_generator=self.guid_generator,
+            what_day_is_it=self.what_day_is_it,
+            entry_listeners=[
+                self.sets_open_with,
+                self.symlinker,
+                self.pre_scan_quick_cleaner,
+            ],
+        )
         self.git = Git(self)
         self.searcher = Searcher(self)
 

@@ -6,7 +6,7 @@ import sys
 
 import jnl.system
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import jnl
 
@@ -155,7 +155,7 @@ class TestDatabase(unittest.TestCase):
         with_tag = main.context.database.entries_with_tag("quick", "daily/2009-11-28")
         assert len(with_tag) == 1
         assert (
-                with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
+            with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
         )  # guaranteed cuz we set random.seed
         self.has_tags(with_tag[0], "@ft", "@quick(daily/2009-11-28)")
 
@@ -202,7 +202,7 @@ class TestDatabase(unittest.TestCase):
         def isdir(self, path):
             path = self._rmroot(path)
             return (
-                    path in self.files and self.files[path] == "dir"
+                path in self.files and self.files[path] == "dir"
             )  # change if using tuple
 
         def makedirs(self, *path):
@@ -312,7 +312,9 @@ class TestDatabase(unittest.TestCase):
 
     def test_cant_create_dupe_symlinks(self):
         main, jnl_dir = self.main_with_fixture("empty")
-        one = main.context.database.create_entry([jnl.tag.Tag(name="quick", value="foo")])
+        one = main.context.database.create_entry(
+            [jnl.tag.Tag(name="quick", value="foo")]
+        )
         two = main.context.database.create_entry(
             [jnl.tag.Tag(name="quick", value="foo")]  # same `quick` tag as `one`
         )

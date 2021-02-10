@@ -56,9 +56,9 @@ class Main(object):
             return self.search(argv)
         if argv[1] == "new":
             return self.new(argv)
-        if argv[1] == "daily" or argv[1] == "today" or argv[1] == "y":
+        if argv[1] == "daily" or argv[1] == "today" or argv[1] == "t":
             return self.daily(argv)
-        if argv[1] == "yesterday":
+        if argv[1] == "y" or argv[1] == "yesterday" or argv[1] == "yd":
             return self.yesterday()
         if argv[1] == "stat" or argv[1] == "st":
             return self.stat(argv)
@@ -91,7 +91,9 @@ def empty_fixture_path():
     )
 
 
-def main(args=sys.argv):
+def main(args=None):
+    if args is None:
+        args = sys.argv
     mainv = Main(
         {
             "JNL_DIR": os.environ["JNL_DIR"]
@@ -100,4 +102,3 @@ def main(args=sys.argv):
         }
     )
     mainv.run(args)
-

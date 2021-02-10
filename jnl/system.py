@@ -114,9 +114,7 @@ class Opener(object):
         self.system = system
 
     def open(self, entry: "Entry") -> None:
-        return self.system.check_call(
-            ["open", "-a", "FoldingText", entry.file_path()]
-        )
+        return self.system.check_call(["open", "-a", "FoldingText", entry.file_path()])
 
 
 class WhatDayIsIt(object):

@@ -10,6 +10,7 @@ try:
     from setuptools import setup
 except ImportError:
     from ez_setup import use_setuptools
+
     use_setuptools()
     from setuptools import setup
 
@@ -45,11 +46,7 @@ setup(
     license="Apache License, Version 2.0",
     python_requires=">=3.5",
     classifiers=[],
-    packages=['jnl'],
+    packages=["jnl"],
     zip_safe=True,
-    entry_points={
-        'console_scripts': [
-            'jnl = jnl.cli:main'
-        ]
-    }
+    entry_points={"console_scripts": ["jnl = jnl.cli:main"]},
 )
