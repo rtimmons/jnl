@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-
-# Postpone evaluation of annotations
-from __future__ import annotations
-
 import sys
 from colorama import init, Fore, Style
 from contextlib import contextmanager

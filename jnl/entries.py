@@ -1,3 +1,6 @@
+# Postpone evaluation of annotations
+from __future__ import annotations
+
 import os
 import re
 from typing import Optional, Match, AnyStr, List, Generator, Pattern, TextIO, Tuple
@@ -29,7 +32,7 @@ class Entry(object):
         path: str = None,
         file_name: str = None,
         guid: str = None,
-        tags: List["Tag"] = None,
+        tags: List[Tag] = None,
         create: bool = False,
     ):
         self.worklogs_path = worklogs_path
@@ -84,7 +87,7 @@ class Entry(object):
                 f.write("  \n")
 
     @property
-    def tags(self) -> List["Tag"]:
+    def tags(self) -> List[Tag]:
         if self._tags is None:
             tags = []
             # TODO: use self.lines here
@@ -133,7 +136,7 @@ class Entry(object):
     def __repr__(self) -> str:
         return "%s: %s" % (self.file_name, self.tags)
 
-    def matches(self, pattern: Pattern[AnyStr]) -> List["EntryMatch"]:
+    def matches(self, pattern: Pattern[AnyStr]) -> List[EntryMatch]:
         # can probably be turned into a nicer comprehension
         out = []
         for (line, line_index) in self.lines():
@@ -201,7 +204,7 @@ class Tag(object):
     )
 
     @staticmethod
-    def parse(line: str) -> List["Tag"]:
+    def parse(line: str) -> List[Tag]:
         """Return list of tags"""
         out = []
 
