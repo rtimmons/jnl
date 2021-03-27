@@ -61,7 +61,7 @@ class Database:
             my_path = self.path("worklogs")
             self._entries = [
                 Entry(
-                    database=self,
+                    worklogs_path=self.path("worklogs"),
                     file_name=f,
                     path=my_path,
                 )
@@ -71,7 +71,7 @@ class Database:
         return self._entries
 
     def create_entry(self, tags: List[Tag] = None) -> Entry:
-        entry = Entry(database=self, tags=tags, create=True)
+        entry = Entry(worklogs_path=self.path("worklogs"), tags=tags, create=True)
         self.entries.append(entry)
         return entry
 
@@ -150,14 +150,14 @@ class Entry(object):
 
     def __init__(
         self,
-        database: Database,
+        worklogs_path: str,
         path: str = None,
         file_name: str = None,
         guid: str = None,
         tags: List[Tag] = None,
         create: bool = False,
     ):
-        self.database = database
+        self.worklogs_path = worklogs_path
 
         if guid is None:
             if file_name is None:
@@ -172,7 +172,7 @@ class Entry(object):
         self.guid: str = guid
 
         if path is None:
-            path = self.database.path("worklogs")
+            path = self.worklogs_path
         self.path: str = path
         """dirname of full file_name path"""
 
