@@ -108,13 +108,17 @@ class TestDatabase(unittest.TestCase):
         shutil.copytree(source_fixture, jnl_dir)
 
         self.to_cleanup.append(tmp_dir)
-        return jnl.cli.Main({"JNL_DIR": jnl_dir}), jnl_dir
+
+        self.old_jnl_dir = os.environ["JNL_DIR"]
+        os.environ["JNL_DIR"] = jnl_dir
+        return jnl.cli.Main(), jnl_dir
 
     def setUp(self):
         random.seed(100)
         self.to_cleanup = []
 
     def tearDown(self):
+        os.environ["JNL_DIR"] = self.old_jnl_dir
         for c in self.to_cleanup:
             # print "Cleaning up %s" % c
             shutil.rmtree(c)
@@ -181,7 +185,7 @@ class TestDatabase(unittest.TestCase):
         entries = main.context.database.entries
         assert len(entries) == 3
 
-        another = jnl.cli.Main({"JNL_DIR": jnl_dir})
+        another = jnl.cli.Main()
 
         assert another is not main
 

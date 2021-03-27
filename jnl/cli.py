@@ -7,10 +7,8 @@ from jnl import system
 
 
 class Main(object):
-    def __init__(self, environment=None):
-        if environment is None:
-            environment = os.environ
-        self.context = Context(environment=environment)
+    def __init__(self):
+        self.context = Context()
 
     def open(self, argv):
         system.open(self.context.database.entry_with_guid(argv[2]))
@@ -97,11 +95,7 @@ def empty_fixture_path():
 def main(args=None):
     if args is None:
         args = sys.argv
-    mainv = Main(
-        {
-            "JNL_DIR": os.environ["JNL_DIR"]
-            if "JNL_DIR" in os.environ
-            else empty_fixture_path()
-        }
-    )
+    if "JNL_DIR" not in os.environ:
+        os.environ["JNL_DIR"] = empty_fixture_path()
+    mainv = Main()
     mainv.run(args)

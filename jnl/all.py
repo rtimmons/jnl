@@ -125,8 +125,7 @@ class Database:
 
 
 class Context(object):
-    def __init__(self, environment: Dict[str, str]):
-        self.environment = environment
+    def __init__(self):
         self.sets_open_with = SetsOpenWith(self)
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
@@ -138,7 +137,7 @@ class Context(object):
                 self.pre_scan_quick_cleaner,
             ],
         )
-        self.searcher = Searcher(self)
+        self.searcher = Searcher(self.database)
 
     def __str__(self):
         return "Context()"
@@ -156,8 +155,8 @@ class ColoredUI(object):
 
 
 class Searcher(object):
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(self, database: Database):
+        self.database = database
 
     def search(self, pattern: Pattern[AnyStr]) -> None:
         ui = ColoredUI()
@@ -165,9 +164,7 @@ class Searcher(object):
             return self._search(pattern, scr)
 
     def _search(self, pattern: Pattern[AnyStr], scr: TextIO) -> None:
-        entries: Dict[str, List[EntryMatch]] = self.context.database.entries_matching(
-            pattern
-        )
+        entries: Dict[str, List[EntryMatch]] = self.database.entries_matching(pattern)
         index: int = 0
         options: Dict[int, str] = {}
         # TODO: this impl is messy and split up between EntryMatch and here
