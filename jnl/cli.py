@@ -4,7 +4,7 @@ import sys
 
 import jnl.system
 
-from jnl.all import Searcher
+import jnl.search
 from jnl.database import Database
 from jnl.listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 
@@ -41,8 +41,7 @@ class Main(object):
                 )
             pat_source = pat_source[1:-1]
             pattern = re.compile(pat_source)
-        searcher = Searcher(database=self.database)
-        return searcher.search(pattern)
+        return jnl.search.search(database=self.database, pattern=pattern)
 
     def stat(self, _):
         git_dir = self.database.path()
