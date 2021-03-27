@@ -2,9 +2,10 @@ import os
 import re
 import sys
 
+import jnl.system
+
 from jnl.all import Searcher
 from jnl.database import Database
-from jnl import system
 from jnl.listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 
 
@@ -15,18 +16,18 @@ class Main(object):
         )
 
     def open(self, argv):
-        system.open_entry(self.database.entry_with_guid(argv[2]))
+        jnl.system.open_entry(self.database.entry_with_guid(argv[2]))
 
     def new(self, _):
-        system.open_entry(self.database.create_entry())
+        jnl.system.open_entry(self.database.create_entry())
 
     def sync(self, argv):
         git_dir = self.database.path()
-        system.git_pull(git_dir)
+        jnl.system.git_pull(git_dir)
         self.scan(argv)
-        system.git_stat(git_dir)
+        jnl.system.git_stat(git_dir)
         if len(argv) > 2 and argv[2] == "push":
-            system.git_autopush(git_dir)
+            jnl.system.git_autopush(git_dir)
 
     def search(self, argv):
         pat_source: str = argv[2]
@@ -45,15 +46,15 @@ class Main(object):
 
     def stat(self, _):
         git_dir = self.database.path()
-        system.git_stat(git_dir)
+        jnl.system.git_stat(git_dir)
 
     def proj(self, argv):
         if len(argv) < 3:
-            project = system.file_contents(".project").strip()
+            project = jnl.system.file_contents(".project").strip()
         else:
             project = argv[2]
         for e in self.database.entries_with_project(project):
-            system.open_entry(e)
+            jnl.system.open_entry(e)
 
     def run(self, argv):
         if len(argv) == 1 or argv[1].startswith("p"):
@@ -82,12 +83,12 @@ class Main(object):
     # TODO: finish
     def yesterday(self):
         daily = self.database.yesterday_entry()
-        system.open_entry(daily)
+        jnl.system.open_entry(daily)
         self.database.scan()
 
     def daily(self, _):
         daily = self.database.daily_entry()
-        system.open_entry(daily)
+        jnl.system.open_entry(daily)
         self.database.scan()
 
 
