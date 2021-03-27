@@ -5,10 +5,6 @@ import jnl.system
 from jnl.entries import Entry, Tag, EntryMatch
 
 
-def dbdir() -> str:
-    return os.getenv("JNL_DIR")
-
-
 class NopListener(object):
     def on_entry(self, database: "Database", entry: "Entry") -> None:
         pass
@@ -24,14 +20,16 @@ class Database:
     def __init__(
         self,
         entry_listeners: List[NopListener],
+        dbdir=None,
     ):
         self.entry_listeners = entry_listeners
+        self.dbdir = os.getenv("JNL_DIR") if dbdir is None else dbdir
 
         self._entries: Optional[List[str]] = None
         """Use .entries instead of _entries to ensure it's initialized"""
 
     def path(self, *subdirs: str) -> str:
-        out = os.path.join(dbdir(), *subdirs)
+        out = os.path.join(self.dbdir, *subdirs)
         if not jnl.system.exists(out):
             jnl.system.makedirs(out)
         assert jnl.system.isdir(out)

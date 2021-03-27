@@ -108,16 +108,13 @@ class TestDatabase(unittest.TestCase):
 
         self.to_cleanup.append(tmp_dir)
 
-        self.old_jnl_dir = os.environ["JNL_DIR"]
-        os.environ["JNL_DIR"] = jnl_dir
-        return jnl.cli.Main(), jnl_dir
+        return jnl.cli.Main(dbdir=jnl_dir), jnl_dir
 
     def setUp(self):
         random.seed(100)
         self.to_cleanup = []
 
     def tearDown(self):
-        os.environ["JNL_DIR"] = self.old_jnl_dir
         for c in self.to_cleanup:
             # print "Cleaning up %s" % c
             shutil.rmtree(c)
@@ -181,7 +178,7 @@ class TestDatabase(unittest.TestCase):
         entries = main.database.entries
         assert len(entries) == 3
 
-        another = jnl.cli.Main()
+        another = jnl.cli.Main(dbdir=jnl_dir)
 
         assert another is not main
 
@@ -192,8 +189,8 @@ class TestDatabase(unittest.TestCase):
         assert another_daily is not daily
 
     class MockSystem(object):
-        def __init__(self, root, files={}):
-            self.files = files
+        def __init__(self, root, files=None):
+            self.files = files if files else {}
             self.calls = []
             self.root = root
 

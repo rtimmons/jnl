@@ -10,8 +10,9 @@ from jnl.listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 
 
 class Main(object):
-    def __init__(self):
+    def __init__(self, dbdir: str = None):
         self.database = Database(
+            dbdir=dbdir,
             entry_listeners=[SetsOpenWith(), Symlinker(), PreScanQuickCleaner()],
         )
 
