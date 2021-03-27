@@ -148,6 +148,9 @@ class TestDatabase(unittest.TestCase):
         main, jnl_dir = self.main_with_fixture("typical")
         self.mock_what_day_is_it(main)
 
+        entries = main.context.database.entries
+        assert len(entries) == 2
+
         daily = main.context.database.daily_entry()
         entries = main.context.database.entries
         assert len(entries) == 3
@@ -237,7 +240,7 @@ class TestDatabase(unittest.TestCase):
     def test_creates_symlinks(self):
         (main, jnl_dir) = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
-        main.context.database.system = msys
+        main.context.system = msys
 
         main.context.database.scan()
 

@@ -36,13 +36,13 @@ class Settings:
 class Database:
     def __init__(
         self,
-        system: System,
+        context: Context,
         settings: Settings,
         guid_generator: GuidGenerator,
         what_day_is_it: WhatDayIsIt,
         entry_listeners: List[NopListener],
     ):
-        self.system = system
+        self.context = context
         self.settings = settings
         self.guid_generator = guid_generator
         self.what_day_is_it = what_day_is_it
@@ -53,9 +53,9 @@ class Database:
 
     def path(self, *subdirs: str) -> str:
         out = os.path.join(self.settings.dbdir(), *subdirs)
-        if not self.system.exists(out):
-            self.system.makedirs(out)
-        assert self.system.isdir(out)
+        if not self.context.system.exists(out):
+            self.context.system.makedirs(out)
+        assert self.context.system.isdir(out)
         return out
 
     @property
@@ -95,7 +95,7 @@ class Database:
 
     def daily_entry(self, yyyymmdd: str = None) -> Entry:
         if yyyymmdd is None:
-            yyyymmdd = self.what_day_is_it.yyyymmdd()
+            yyyymmdd = self.context.what_day_is_it.yyyymmdd()
         tag_val = "daily/%s" % yyyymmdd
         existing = self.entries_with_tag("quick", tag_val)
         if not existing:
@@ -339,7 +339,7 @@ class Context(object):
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
         self.database = Database(
-            system=self.system,
+            context=self,
             settings=self.settings,
             guid_generator=self.guid_generator,
             what_day_is_it=self.what_day_is_it,
