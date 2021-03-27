@@ -19,11 +19,12 @@ class Main(object):
         system.open(self.context.database.create_entry())
 
     def sync(self, argv):
-        self.context.git.pull()
+        git_dir = self.context.database.path()
+        system.git_pull(git_dir)
         self.scan(argv)
-        self.context.git.status()
+        system.git_stat(git_dir)
         if len(argv) > 2 and argv[2] == "push":
-            self.context.git.autopush()
+            system.git_autopush(git_dir)
 
     def search(self, argv):
         pat_source: str = argv[2]
@@ -40,7 +41,8 @@ class Main(object):
         return self.context.searcher.search(pattern)
 
     def stat(self, _):
-        self.context.git.status()
+        git_dir = self.context.database.path()
+        system.git_stat(git_dir)
 
     def proj(self, argv):
         if len(argv) < 3:

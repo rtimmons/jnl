@@ -4,6 +4,10 @@ import os
 import random
 import shutil
 import subprocess
+from contextlib import contextmanager
+
+from typing import List
+
 import dateparser
 
 
@@ -17,8 +21,8 @@ def makedirs(*args: str):
     return os.makedirs(*args)
 
 
-def check_call(*args: str):
-    subprocess.check_call(*args)
+def check_call(args: List[str]):
+    subprocess.check_call(args)
 
 
 def exists(path: str):
@@ -50,6 +54,34 @@ def rmtree(path: str):
             except Exception as e:
                 print(("Cannot remove {}/{}".format(path, f)))
                 raise e
+
+
+@contextmanager
+def in_dir(path: str) -> None:
+    old_dir = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(old_dir)
+
+
+def _git_run(git_dir, git_command: str):
+    command = ["git", git_command]
+    with in_dir(git_dir):
+        print(check_call(command))
+
+
+def git_stat(git_dir: str):
+    _git_run(git_dir, "status")
+
+
+def git_pull(git_dir: str):
+    _git_run(git_dir, "pull")
+
+
+def git_autopush(git_dir: str):
+    _git_run(git_dir, "autopush")
 
 
 def isdir(path: str):

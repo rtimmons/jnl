@@ -130,29 +130,6 @@ class Database:
         return out
 
 
-class Git:
-    def __init__(self, context: Context):
-        self.context = context
-
-    def _run(self, *git_command: str):
-        command = ["git"]
-        command.extend(git_command)
-        with self.context.in_dir():
-            print(jnl.system.check_call(command))
-
-    def stat(self):
-        self._run("status")
-
-    def pull(self):
-        self._run("pull")
-
-    def status(self):
-        self._run("status")
-
-    def autopush(self):
-        self._run("autopush")
-
-
 class Context(object):
     def __init__(self, environment: Dict[str, str]):
         self.environment = environment
@@ -169,20 +146,10 @@ class Context(object):
                 self.pre_scan_quick_cleaner,
             ],
         )
-        self.git = Git(self)
         self.searcher = Searcher(self)
 
     def __str__(self):
         return "Context()"
-
-    @contextmanager
-    def in_dir(self, *path: str) -> None:
-        old_dir = os.getcwd()
-        try:
-            os.chdir(self.database.path(*path))
-            yield
-        finally:
-            os.chdir(old_dir)
 
 
 # TODO: is this really necessary?
