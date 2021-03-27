@@ -31,10 +31,8 @@ def dbdir() -> str:
 class Database:
     def __init__(
         self,
-        context: Context,
         entry_listeners: List[NopListener],
     ):
-        self.context = context
         self.entry_listeners = entry_listeners
 
         self._entries: Optional[List[str]] = None
@@ -127,13 +125,9 @@ class Database:
 class Context(object):
     def __init__(self):
         self.database = Database(
-            context=self,
             entry_listeners=[SetsOpenWith(), Symlinker(), PreScanQuickCleaner()],
         )
         self.searcher = Searcher(self.database)
-
-    def __str__(self):
-        return "Context()"
 
 
 # TODO: is this really necessary?
