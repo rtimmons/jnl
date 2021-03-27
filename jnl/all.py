@@ -24,30 +24,24 @@ from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner, NopListener
 import jnl.system
 
 
-class Settings:
-    def __init__(self, context: Context):
-        self.context = context
-
-    def dbdir(self) -> str:
-        return self.context.environment["JNL_DIR"]
+def dbdir() -> str:
+    return os.getenv("JNL_DIR")
 
 
 class Database:
     def __init__(
         self,
         context: Context,
-        settings: Settings,
         entry_listeners: List[NopListener],
     ):
         self.context = context
-        self.settings = settings
         self.entry_listeners = entry_listeners
 
         self._entries: Optional[List[str]] = None
         """Use .entries instead of _entries to ensure it's initialized"""
 
     def path(self, *subdirs: str) -> str:
-        out = os.path.join(self.settings.dbdir(), *subdirs)
+        out = os.path.join(dbdir(), *subdirs)
         if not jnl.system.exists(out):
             jnl.system.makedirs(out)
         assert jnl.system.isdir(out)
@@ -136,10 +130,8 @@ class Context(object):
         self.sets_open_with = SetsOpenWith(self)
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
-        self.settings = Settings(self)
         self.database = Database(
             context=self,
-            settings=self.settings,
             entry_listeners=[
                 self.sets_open_with,
                 self.symlinker,
