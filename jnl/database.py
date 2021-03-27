@@ -3,11 +3,21 @@ from typing import List, Optional, Tuple, Pattern, AnyStr, Dict
 
 import jnl.system
 from jnl.entries import Entry, Tag, EntryMatch
-from jnl.listeners import NopListener
 
 
 def dbdir() -> str:
     return os.getenv("JNL_DIR")
+
+
+class NopListener(object):
+    def on_entry(self, database: "Database", entry: "Entry") -> None:
+        pass
+
+    def on_pre_scan(self, database: "Database") -> None:
+        pass
+
+    def on_post_scan(self, database: "Database") -> None:
+        pass
 
 
 class Database:

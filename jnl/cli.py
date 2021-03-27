@@ -15,10 +15,10 @@ class Main(object):
         )
 
     def open(self, argv):
-        system.open(self.database.entry_with_guid(argv[2]))
+        system.open_entry(self.database.entry_with_guid(argv[2]))
 
     def new(self, _):
-        system.open(self.database.create_entry())
+        system.open_entry(self.database.create_entry())
 
     def sync(self, argv):
         git_dir = self.database.path()
@@ -53,7 +53,7 @@ class Main(object):
         else:
             project = argv[2]
         for e in self.database.entries_with_project(project):
-            system.open(e)
+            system.open_entry(e)
 
     def run(self, argv):
         if len(argv) == 1 or argv[1].startswith("p"):
@@ -82,12 +82,12 @@ class Main(object):
     # TODO: finish
     def yesterday(self):
         daily = self.database.yesterday_entry()
-        system.open(daily)
+        system.open_entry(daily)
         self.database.scan()
 
     def daily(self, _):
         daily = self.database.daily_entry()
-        system.open(daily)
+        system.open_entry(daily)
         self.database.scan()
 
 

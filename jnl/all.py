@@ -10,8 +10,8 @@ from typing import (
     TextIO,
 )
 
-from .database import Database
-from .entries import EntryMatch
+from jnl.database import Database
+from jnl.entries import EntryMatch
 
 import jnl.system
 
@@ -21,7 +21,7 @@ class Searcher(object):
         self.database = database
 
     @contextmanager
-    def colored_screen(self) -> Generator[TextIO]:
+    def colored_screen(self) -> Generator[TextIO, None, None]:
         try:
             init(autoreset=True)
             yield sys.stdout
@@ -54,4 +54,4 @@ class Searcher(object):
             index = index + 1
         choice = int(input("? "))
         key_of_choice = options[choice]
-        jnl.system.open(entries[key_of_choice][0].entry)
+        jnl.system.open_entry(entries[key_of_choice][0].entry)

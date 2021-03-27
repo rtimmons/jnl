@@ -5,20 +5,8 @@ import re
 import xattr
 
 import jnl.system
-
-
-class NopListener(object):
-    def __init__(self):
-        self.state = {}
-
-    def on_entry(self, database: "Database", entry: "Entry") -> None:
-        pass
-
-    def on_pre_scan(self, database: "Database") -> None:
-        pass
-
-    def on_post_scan(self, database: "Database") -> None:
-        pass
+from jnl.entries import Entry
+from jnl.database import NopListener, Database
 
 
 class SetsOpenWith(NopListener):
@@ -53,7 +41,7 @@ class SetsOpenWith(NopListener):
 
     OPEN_WITH_ATTR = binascii.unhexlify(OPEN_WITH_ATTR_HEX)
 
-    def on_entry(self, database: "Database", entry: "Entry") -> None:
+    def on_entry(self, database: Database, entry: Entry) -> None:
         if not entry.has_tag("ft", None):
             return
 
@@ -65,9 +53,12 @@ class SetsOpenWith(NopListener):
 
 
 class Symlinker(NopListener):
-    def on_entry(self, database: "Database", entry: "Entry") -> None:
-        if self.state.get("yyyymmdd") is None:
-            self.state["yyyymmdd"] = jnl.system.yyyymmdd()
+    def __init__(self):
+        self.yyyymmdd = None
+
+    def on_entry(self, database: Database, entry: Entry) -> None:
+        if self.yyyymmdd is None:
+            self.yyyymmdd = jnl.system.yyyymmdd()
         tags = [t for t in entry.tags if t.name == "quick" and t.value is not None]
         for tag in tags:
             val = tag.value
@@ -91,7 +82,7 @@ class Symlinker(NopListener):
 
 
 class PreScanQuickCleaner(NopListener):
-    def on_pre_scan(self, database: "Database") -> None:
+    def on_pre_scan(self, database: Database) -> None:
         path = database.path("quick")
         print(("Scanning %s" % path))
         if jnl.system.exists(path):

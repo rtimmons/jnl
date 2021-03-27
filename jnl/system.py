@@ -10,6 +10,8 @@ from typing import List
 
 import dateparser
 
+from jnl.entries import Entry
+
 
 def file_contents(path: str):
     path = os.path.join(os.environ.get("JNL_ORIG_CWD"), path)
@@ -132,7 +134,7 @@ def guid() -> str:
     return "".join([random.choice(LETTERS) for _ in range(21)])
 
 
-def open(entry: "Entry") -> None:
+def open_entry(entry: Entry) -> None:
     return check_call(["open", "-a", "FoldingText", entry.file_path()])
 
 
