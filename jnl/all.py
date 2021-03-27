@@ -20,9 +20,10 @@ from typing import (
     Tuple,
 )
 
-from .system import System, GuidGenerator, Opener, WhatDayIsIt
 from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner, NopListener
 from .tag import Tag
+
+import jnl.system
 
 
 class Settings:
@@ -38,14 +39,10 @@ class Database:
         self,
         context: Context,
         settings: Settings,
-        guid_generator: GuidGenerator,
-        what_day_is_it: WhatDayIsIt,
         entry_listeners: List[NopListener],
     ):
         self.context = context
         self.settings = settings
-        self.guid_generator = guid_generator
-        self.what_day_is_it = what_day_is_it
         self.entry_listeners = entry_listeners
 
         self._entries: Optional[List[str]] = None
@@ -53,9 +50,9 @@ class Database:
 
     def path(self, *subdirs: str) -> str:
         out = os.path.join(self.settings.dbdir(), *subdirs)
-        if not self.context.system.exists(out):
-            self.context.system.makedirs(out)
-        assert self.context.system.isdir(out)
+        if not jnl.system.exists(out):
+            jnl.system.makedirs(out)
+        assert jnl.system.isdir(out)
         return out
 
     @property
@@ -64,7 +61,6 @@ class Database:
             my_path = self.path("worklogs")
             self._entries = [
                 Entry(
-                    guid_generator=self.guid_generator,
                     database=self,
                     file_name=f,
                     path=my_path,
@@ -75,9 +71,7 @@ class Database:
         return self._entries
 
     def create_entry(self, tags: List[Tag] = None) -> Entry:
-        entry = Entry(
-            guid_generator=self.guid_generator, database=self, tags=tags, create=True
-        )
+        entry = Entry(database=self, tags=tags, create=True)
         self.entries.append(entry)
         return entry
 
@@ -95,7 +89,7 @@ class Database:
 
     def daily_entry(self, yyyymmdd: str = None) -> Entry:
         if yyyymmdd is None:
-            yyyymmdd = self.context.what_day_is_it.yyyymmdd()
+            yyyymmdd = jnl.system.yyyymmdd()
         tag_val = "daily/%s" % yyyymmdd
         existing = self.entries_with_tag("quick", tag_val)
         if not existing:
@@ -156,7 +150,6 @@ class Entry(object):
 
     def __init__(
         self,
-        guid_generator: GuidGenerator,
         database: Database,
         path: str = None,
         file_name: str = None,
@@ -164,12 +157,11 @@ class Entry(object):
         tags: List[Tag] = None,
         create: bool = False,
     ):
-        self.guid_generator = guid_generator
         self.database = database
 
         if guid is None:
             if file_name is None:
-                guid = self.guid_generator.guid()
+                guid = jnl.system.guid()
             else:
                 match = Entry.FILENAME_RE.match(file_name)
                 if match is None:
@@ -312,7 +304,7 @@ class Git:
         command = ["git"]
         command.extend(git_command)
         with self.context.in_dir():
-            print(self.context.system.check_call(command))
+            print(jnl.system.check_call(command))
 
     def stat(self):
         self._run("status")
@@ -330,19 +322,13 @@ class Git:
 class Context(object):
     def __init__(self, environment: Dict[str, str]):
         self.environment = environment
-        self.system = System()
-        self.opener = Opener(self.system)
         self.sets_open_with = SetsOpenWith(self)
-        self.what_day_is_it = WhatDayIsIt(self.system)
-        self.guid_generator = GuidGenerator()
         self.symlinker = Symlinker(self)
         self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.settings = Settings(self)
         self.database = Database(
             context=self,
             settings=self.settings,
-            guid_generator=self.guid_generator,
-            what_day_is_it=self.what_day_is_it,
             entry_listeners=[
                 self.sets_open_with,
                 self.symlinker,
@@ -409,4 +395,4 @@ class Searcher(object):
             index = index + 1
         choice = int(input("? "))
         key_of_choice = options[choice]
-        self.context.opener.open(entries[key_of_choice][0].entry)
+        jnl.system.open(entries[key_of_choice][0].entry)

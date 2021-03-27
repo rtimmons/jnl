@@ -4,6 +4,8 @@ import re
 
 import xattr
 
+import jnl.system
+
 
 class NopListener(object):
     def __init__(self, context: "Context"):
@@ -69,7 +71,7 @@ class SetsOpenWith(NopListener):
 class Symlinker(NopListener):
     def on_entry(self, entry: "Entry") -> None:
         if self.state.get("yyyymmdd") is None:
-            self.state["yyyymmdd"] = self.context.what_day_is_it.yyyymmdd()
+            self.state["yyyymmdd"] = jnl.system.yyyymmdd()
         tags = [t for t in entry.tags if t.name == "quick" and t.value is not None]
         for tag in tags:
             val = tag.value
@@ -79,8 +81,8 @@ class Symlinker(NopListener):
             filename_part = "%s.%s" % (past, entry.file_extension())
             into_dir = self.context.database.path("quick", *dir_parts)
             symlink = os.path.join(into_dir, filename_part)
-            if self.context.system.exists(symlink):
-                existing = self.context.system.readlink(symlink)
+            if jnl.system.exists(symlink):
+                existing = jnl.system.readlink(symlink)
                 if existing == entry.file_path():
                     # job already done
                     continue
@@ -89,12 +91,12 @@ class Symlinker(NopListener):
                         "@quick(%s) owned by %s, so %s can't take it"
                         % (val, existing, entry.file_path())
                     )
-            self.context.system.symlink(entry.file_path(), symlink)
+            jnl.system.symlink(entry.file_path(), symlink)
 
 
 class PreScanQuickCleaner(NopListener):
     def on_pre_scan(self) -> None:
         path = self.context.database.path("quick")
         print(("Scanning %s" % path))
-        if self.context.system.exists(path):
-            self.context.system.rmtree(path)
+        if jnl.system.exists(path):
+            jnl.system.rmtree(path)

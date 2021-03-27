@@ -3,6 +3,7 @@ import re
 import sys
 
 from jnl.all import Context
+from jnl import system
 
 
 class Main(object):
@@ -12,10 +13,10 @@ class Main(object):
         self.context = Context(environment=environment)
 
     def open(self, argv):
-        self.context.opener.open(self.context.database.entry_with_guid(argv[2]))
+        system.open(self.context.database.entry_with_guid(argv[2]))
 
     def new(self, _):
-        self.context.opener.open(self.context.database.create_entry())
+        system.open(self.context.database.create_entry())
 
     def sync(self, argv):
         self.context.git.pull()
@@ -43,11 +44,11 @@ class Main(object):
 
     def proj(self, argv):
         if len(argv) < 3:
-            project = self.context.system.file_contents(".project").strip()
+            project = system.file_contents(".project").strip()
         else:
             project = argv[2]
         for e in self.context.database.entries_with_project(project):
-            self.context.opener.open(e)
+            system.open(e)
 
     def run(self, argv):
         if len(argv) == 1 or argv[1].startswith("p"):
@@ -76,12 +77,12 @@ class Main(object):
     # TODO: finish
     def yesterday(self):
         daily = self.context.database.yesterday_entry()
-        self.context.opener.open(daily)
+        system.open(daily)
         self.context.database.scan()
 
     def daily(self, _):
         daily = self.context.database.daily_entry()
-        self.context.opener.open(daily)
+        system.open(daily)
         self.context.database.scan()
 
 

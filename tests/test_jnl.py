@@ -1,17 +1,21 @@
+import functools
 import random
 import shutil
 import tempfile
 import os
 import sys
+from contextlib import contextmanager
 
-import jnl.system
+import jnl.system as system
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import jnl
+import jnl.all
 
 import unittest
 import mock
+from mock import patch
 
 import jnl.cli
 import jnl.tag
@@ -66,22 +70,33 @@ class TestTag(unittest.TestCase):
 # A symlink can't point to 2 things.
 
 
+@contextmanager
+def with_replacement(base, name, replacement):
+    old = getattr(base, name, None)
+    if old is None:
+        raise Exception(f"Object does not have attr {name}. Maybe one of {dir(base)}?")
+    try:
+        setattr(base, name, replacement)
+        yield
+    finally:
+        setattr(base, name, old)
+
+
 class TestWhatDayIsIt(unittest.TestCase):
-    def test_formats_days(self):
+    @patch.object(system, "now")
+    def test_formats_days(self, mock_now):
         now = mock.MagicMock()
         now.year = 2017
         now.month = 2
         now.day = 1
 
-        context = mock.MagicMock()
-        context.system.now.return_value = now
+        mock_now.return_value = now
 
         # test of the test
-        assert context.system.now().year == 2017
+        assert system.now().year == 2017
 
         # Don't need full "context" anymore could just mock system
-        what = jnl.system.WhatDayIsIt(system=context.system)
-        assert what.yyyymmdd() == "2017-02-01"
+        assert system.yyyymmdd() == "2017-02-01"
 
 
 class TestDatabase(unittest.TestCase):
@@ -138,15 +153,11 @@ class TestDatabase(unittest.TestCase):
     def has_tags(self, entry, *tags):
         assert set([str(t) for t in entry.tags]) == set(tags)
 
-    def mock_what_day_is_it(self, main):
-        what_day_is_it = mock.MagicMock()
-        what_day_is_it.yyyymmdd.return_value = "2009-11-28"
-        main.context.what_day_is_it = what_day_is_it
-        return what_day_is_it
 
-    def test_creates_daily_entry(self):
+    @patch.object(jnl.system, "yyyymmdd", return_value="2009-11-28")
+    def test_creates_daily_entry(self, mock_yyymmdd):
         main, jnl_dir = self.main_with_fixture("typical")
-        self.mock_what_day_is_it(main)
+        # self.mock_what_day_is_it(main)
 
         entries = main.context.database.entries
         assert len(entries) == 2
@@ -162,16 +173,15 @@ class TestDatabase(unittest.TestCase):
         )  # guaranteed cuz we set random.seed
         self.has_tags(with_tag[0], "@ft", "@quick(daily/2009-11-28)")
 
-    def test_uses_existing_daily_entry(self):
+    @patch.object(jnl.system, "yyyymmdd", return_value="2009-11-28")
+    def test_uses_existing_daily_entry(self, mock_yyymmdd):
         main, jnl_dir = self.main_with_fixture("typical")
-        self.mock_what_day_is_it(main)
 
         daily = main.context.database.daily_entry()
         entries = main.context.database.entries
         assert len(entries) == 3
 
         another = jnl.cli.Main({"JNL_DIR": jnl_dir})
-        self.mock_what_day_is_it(another)
 
         assert another is not main
 
@@ -237,12 +247,16 @@ class TestDatabase(unittest.TestCase):
                 k: v for k, v in self.files.items() if not k.startswith(to_remove)
             }
 
+        def yyyymmdd(self):
+            return "1995-03-27"
+
     def test_creates_symlinks(self):
         (main, jnl_dir) = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
         main.context.system = msys
 
-        main.context.database.scan()
+        with with_replacement(jnl, "system", msys):
+            main.context.database.scan()
 
         assert msys.files == {
             "root/quick": "dir",
@@ -284,7 +298,8 @@ class TestDatabase(unittest.TestCase):
             ),
         }
 
-        main.context.database.scan()
+        with with_replacement(jnl, "system", msys):
+            main.context.database.scan()
 
         assert msys.files == {
             "root/quick": "dir",
