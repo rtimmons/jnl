@@ -1,6 +1,3 @@
-# Postpone evaluation of annotations
-from __future__ import annotations
-
 import os
 import re
 from typing import Optional, Match, AnyStr, List, Generator, Pattern, TextIO, Tuple
@@ -8,6 +5,104 @@ from typing import Optional, Match, AnyStr, List, Generator, Pattern, TextIO, Tu
 from colorama import Fore
 
 import jnl.system
+
+
+class Tag(object):
+    TAG_RE = re.compile(
+        r"""
+        @
+            (               # group 1: tag name
+                [^(\s]+     # anything other than (
+            )
+        (?:                 # non-grouping
+            \(              # literal paren
+                (           # group 2: tag value
+                    [^)]*?  # anything other than )
+                )
+            \)
+            |
+            \s*?
+        )?
+    """,
+        re.VERBOSE,
+    )
+
+    DAILY_RE = re.compile(
+        r"""
+        ^
+        daily/(.*?)     # group 1: date
+        $
+        """,
+        re.VERBOSE,
+    )
+
+    @staticmethod
+    def parse(line: str) -> List["Tag"]:
+        """Return list of tags"""
+        out = []
+
+        res = Tag.TAG_RE.finditer(line)
+        if res is not None:
+            for re_match in res:
+                out.append(Tag(re_match))
+
+        return out
+
+    def __init__(self, re_match: Match[AnyStr] = None, name=None, value=None):
+        if re_match is not None:
+            name = re_match.group(1).strip()
+            value = re_match.group(2)
+        self._name: str = name
+        self._value: str = value
+
+    def daily(self) -> Optional[str]:
+        if self.name != "quick" or not self.value:
+            return None
+        match = Tag.DAILY_RE.match(self.value)
+        if match:
+            return match.group(1)
+        return None
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def value(self) -> str:
+        return self._value
+
+    def __repr__(self) -> str:
+        return "@%s%s" % (
+            self.name,
+            "(" + self.value + ")" if self.value is not None else "",
+        )
+
+
+class EntryMatch:
+    def __init__(self, entry: "Entry", match: Match[AnyStr], matched_line_index: int):
+        self.entry = entry
+        self.match = match
+        self.matched_line_index = matched_line_index
+
+    def print(
+        self,
+        scr: TextIO,
+        before_context: int = 0,
+        after_context: int = 0,
+        prefix: str = "  ",
+    ):
+        min_line = max(0, self.matched_line_index - before_context)
+        max_line = self.matched_line_index + after_context
+        for (line, line_index) in self.entry.lines(min_line, max_line):
+            scr.write(prefix)
+            if line_index == self.matched_line_index:
+                begin, end = self.match.span()
+                scr.write(line[0:begin])
+                scr.write(Fore.YELLOW + line[begin:end])
+                scr.write(line[end:])
+            else:
+                scr.write(line)
+            scr.write("\n")
 
 
 class Entry(object):
@@ -145,101 +240,3 @@ class Entry(object):
                 entry_match = EntryMatch(self, match, line_index)
                 out.append(entry_match)
         return out
-
-
-class EntryMatch:
-    def __init__(self, entry: Entry, match: Match[AnyStr], matched_line_index: int):
-        self.entry = entry
-        self.match = match
-        self.matched_line_index = matched_line_index
-
-    def print(
-        self,
-        scr: TextIO,
-        before_context: int = 0,
-        after_context: int = 0,
-        prefix: str = "  ",
-    ):
-        min_line = max(0, self.matched_line_index - before_context)
-        max_line = self.matched_line_index + after_context
-        for (line, line_index) in self.entry.lines(min_line, max_line):
-            scr.write(prefix)
-            if line_index == self.matched_line_index:
-                begin, end = self.match.span()
-                scr.write(line[0:begin])
-                scr.write(Fore.YELLOW + line[begin:end])
-                scr.write(line[end:])
-            else:
-                scr.write(line)
-            scr.write("\n")
-
-
-class Tag(object):
-    TAG_RE = re.compile(
-        r"""
-        @
-            (               # group 1: tag name
-                [^(\s]+     # anything other than (
-            )
-        (?:                 # non-grouping
-            \(              # literal paren
-                (           # group 2: tag value
-                    [^)]*?  # anything other than )
-                )
-            \)
-            |
-            \s*?
-        )?
-    """,
-        re.VERBOSE,
-    )
-
-    DAILY_RE = re.compile(
-        r"""
-        ^
-        daily/(.*?)     # group 1: date
-        $
-        """,
-        re.VERBOSE,
-    )
-
-    @staticmethod
-    def parse(line: str) -> List[Tag]:
-        """Return list of tags"""
-        out = []
-
-        res = Tag.TAG_RE.finditer(line)
-        if res is not None:
-            for re_match in res:
-                out.append(Tag(re_match))
-
-        return out
-
-    def __init__(self, re_match: Match[AnyStr] = None, name=None, value=None):
-        if re_match is not None:
-            name = re_match.group(1).strip()
-            value = re_match.group(2)
-        self._name: str = name
-        self._value: str = value
-
-    def daily(self) -> Optional[str]:
-        if self.name != "quick" or not self.value:
-            return None
-        match = Tag.DAILY_RE.match(self.value)
-        if match:
-            return match.group(1)
-        return None
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def value(self) -> str:
-        return self._value
-
-    def __repr__(self) -> str:
-        return "@%s%s" % (
-            self.name,
-            "(" + self.value + ")" if self.value is not None else "",
-        )
