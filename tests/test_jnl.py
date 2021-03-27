@@ -125,16 +125,14 @@ class TestDatabase(unittest.TestCase):
 
     def test_path(self):
         main, jnl_dir = self.main_with_fixture("typical")
-        assert main.context.database.path() == jnl_dir
+        assert main.database.path() == jnl_dir
 
-        assert os.path.exists(main.context.database.path("quick"))
-        assert os.path.exists(
-            main.context.database.path("quick", "something_we_create_now")
-        )
+        assert os.path.exists(main.database.path("quick"))
+        assert os.path.exists(main.database.path("quick", "something_we_create_now"))
 
     def test_list_entries(self):
         main, jnl_dir = self.main_with_fixture("typical")
-        entries = main.context.database.entries
+        entries = main.database.entries
         assert len(entries) == 2
         guids = [e.guid for e in entries]
         assert guids == ["HMKYKM4NNG4KREW61D55", "W5BNE202WYF031H7J3RY"]
@@ -142,7 +140,7 @@ class TestDatabase(unittest.TestCase):
     def test_entries_with_tags(self):
         main, jnl_dir = self.main_with_fixture("typical")
 
-        with_tag = main.context.database.entries_with_tag("quick", "tickets/PERF-1188")
+        with_tag = main.database.entries_with_tag("quick", "tickets/PERF-1188")
         assert len(with_tag) == 1
         assert with_tag[0].guid == "HMKYKM4NNG4KREW61D55"
         self.has_tags(
@@ -162,14 +160,14 @@ class TestDatabase(unittest.TestCase):
         main, jnl_dir = self.main_with_fixture("typical")
         # self.mock_what_day_is_it(main)
 
-        entries = main.context.database.entries
+        entries = main.database.entries
         assert len(entries) == 2
 
-        daily = main.context.database.daily_entry()
-        entries = main.context.database.entries
+        daily = main.database.daily_entry()
+        entries = main.database.entries
         assert len(entries) == 3
 
-        with_tag = main.context.database.entries_with_tag("quick", "daily/2009-11-28")
+        with_tag = main.database.entries_with_tag("quick", "daily/2009-11-28")
         assert len(with_tag) == 1
         assert (
             with_tag[0].guid == "9XXBSPU775XG3DNEKDB9C"
@@ -180,16 +178,16 @@ class TestDatabase(unittest.TestCase):
     def test_uses_existing_daily_entry(self, mock_yyymmdd):
         main, jnl_dir = self.main_with_fixture("typical")
 
-        daily = main.context.database.daily_entry()
-        entries = main.context.database.entries
+        daily = main.database.daily_entry()
+        entries = main.database.entries
         assert len(entries) == 3
 
         another = jnl.cli.Main()
 
         assert another is not main
 
-        assert len(another.context.database.entries) == 3
-        another_daily = another.context.database.daily_entry()
+        assert len(another.database.entries) == 3
+        another_daily = another.database.daily_entry()
         assert another_daily.guid == daily.guid
 
         assert another_daily is not daily
@@ -256,10 +254,9 @@ class TestDatabase(unittest.TestCase):
     def test_creates_symlinks(self):
         (main, jnl_dir) = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
-        main.context.system = msys
 
         with with_replacement(jnl, "system", msys):
-            main.context.database.scan()
+            main.database.scan()
 
         assert msys.files == {
             "root/quick": "dir",
@@ -291,7 +288,6 @@ class TestDatabase(unittest.TestCase):
     def test_creates_symlinks_removes_others(self):
         main, jnl_dir = self.main_with_fixture("typical")
         msys = TestDatabase.MockSystem(jnl_dir)
-        main.context.system = msys
 
         msys.files = {
             "root/quick": "dir",
@@ -302,7 +298,7 @@ class TestDatabase(unittest.TestCase):
         }
 
         with with_replacement(jnl, "system", msys):
-            main.context.database.scan()
+            main.database.scan()
 
         assert msys.files == {
             "root/quick": "dir",
@@ -333,10 +329,8 @@ class TestDatabase(unittest.TestCase):
 
     def test_cant_create_dupe_symlinks(self):
         main, jnl_dir = self.main_with_fixture("empty")
-        one = main.context.database.create_entry(
-            [jnl.entries.Tag(name="quick", value="foo")]
-        )
-        two = main.context.database.create_entry(
+        one = main.database.create_entry([jnl.entries.Tag(name="quick", value="foo")])
+        two = main.database.create_entry(
             [jnl.entries.Tag(name="quick", value="foo")]  # same `quick` tag as `one`
         )
 
@@ -344,7 +338,7 @@ class TestDatabase(unittest.TestCase):
         assert one != two
 
         with self.assertRaises(Exception) as _:
-            main.context.database.scan()
+            main.database.scan()
 
 
 if __name__ == "__main__":

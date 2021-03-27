@@ -2,22 +2,25 @@ import os
 import re
 import sys
 
-from jnl.all import Context, Searcher
+from jnl.all import Searcher, Database
 from jnl import system
+from jnl.listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 
 
 class Main(object):
     def __init__(self):
-        self.context = Context()
+        self.database = Database(
+            entry_listeners=[SetsOpenWith(), Symlinker(), PreScanQuickCleaner()],
+        )
 
     def open(self, argv):
-        system.open(self.context.database.entry_with_guid(argv[2]))
+        system.open(self.database.entry_with_guid(argv[2]))
 
     def new(self, _):
-        system.open(self.context.database.create_entry())
+        system.open(self.database.create_entry())
 
     def sync(self, argv):
-        git_dir = self.context.database.path()
+        git_dir = self.database.path()
         system.git_pull(git_dir)
         self.scan(argv)
         system.git_stat(git_dir)
@@ -36,11 +39,11 @@ class Main(object):
                 )
             pat_source = pat_source[1:-1]
             pattern = re.compile(pat_source)
-        searcher = Searcher(database=self.context.database)
+        searcher = Searcher(database=self.database)
         return searcher.search(pattern)
 
     def stat(self, _):
-        git_dir = self.context.database.path()
+        git_dir = self.database.path()
         system.git_stat(git_dir)
 
     def proj(self, argv):
@@ -48,7 +51,7 @@ class Main(object):
             project = system.file_contents(".project").strip()
         else:
             project = argv[2]
-        for e in self.context.database.entries_with_project(project):
+        for e in self.database.entries_with_project(project):
             system.open(e)
 
     def run(self, argv):
@@ -73,18 +76,18 @@ class Main(object):
         raise ValueError("Don't know about action {}".format(argv[1]))
 
     def scan(self, _):
-        self.context.database.scan()
+        self.database.scan()
 
     # TODO: finish
     def yesterday(self):
-        daily = self.context.database.yesterday_entry()
+        daily = self.database.yesterday_entry()
         system.open(daily)
-        self.context.database.scan()
+        self.database.scan()
 
     def daily(self, _):
-        daily = self.context.database.daily_entry()
+        daily = self.database.daily_entry()
         system.open(daily)
-        self.context.database.scan()
+        self.database.scan()
 
 
 def empty_fixture_path():

@@ -122,13 +122,6 @@ class Database:
         return out
 
 
-class Context(object):
-    def __init__(self):
-        self.database = Database(
-            entry_listeners=[SetsOpenWith(), Symlinker(), PreScanQuickCleaner()],
-        )
-
-
 # TODO: is this really necessary?
 class ColoredUI(object):
     @contextmanager
