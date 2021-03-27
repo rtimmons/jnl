@@ -157,7 +157,6 @@ class TestDatabase(unittest.TestCase):
     def has_tags(self, entry, *tags):
         assert set([str(t) for t in entry.tags]) == set(tags)
 
-
     @patch.object(jnl.system, "yyyymmdd", return_value="2009-11-28")
     def test_creates_daily_entry(self, mock_yyymmdd):
         main, jnl_dir = self.main_with_fixture("typical")
