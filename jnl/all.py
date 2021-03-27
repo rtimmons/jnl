@@ -104,16 +104,16 @@ class Database:
         # TODO: multi-thread all of this nonsense
         listeners = self.entry_listeners
         for listener in listeners:
-            listener.on_pre_scan()
+            listener.on_pre_scan(database=self)
         for entry in self.entries:
             for listener in listeners:
                 try:
-                    listener.on_entry(entry)
+                    listener.on_entry(database=self, entry=entry)
                 except Exception:
                     print("Listener %s Exception on entry %s" % (listener, entry))
                     raise
         for listener in listeners:
-            listener.on_post_scan()
+            listener.on_post_scan(database=self)
 
     def entries_matching(self, pattern: Pattern[AnyStr]) -> Dict[str, List[EntryMatch]]:
         out: Dict[str, (Entry, List[EntryMatch])] = {}
@@ -126,16 +126,9 @@ class Database:
 
 class Context(object):
     def __init__(self):
-        self.sets_open_with = SetsOpenWith(self)
-        self.symlinker = Symlinker(self)
-        self.pre_scan_quick_cleaner = PreScanQuickCleaner(self)
         self.database = Database(
             context=self,
-            entry_listeners=[
-                self.sets_open_with,
-                self.symlinker,
-                self.pre_scan_quick_cleaner,
-            ],
+            entry_listeners=[SetsOpenWith(), Symlinker(), PreScanQuickCleaner()],
         )
         self.searcher = Searcher(self.database)
 

@@ -8,24 +8,20 @@ import jnl.system
 
 
 class NopListener(object):
-    def __init__(self, context: "Context"):
-        self.context = context
+    def __init__(self):
         self.state = {}
 
-    def on_entry(self, entry: "Entry") -> None:
+    def on_entry(self, database: "Database", entry: "Entry") -> None:
         pass
 
-    def on_pre_scan(self) -> None:
+    def on_pre_scan(self, database: "Database") -> None:
         pass
 
-    def on_post_scan(self) -> None:
+    def on_post_scan(self, database: "Database") -> None:
         pass
 
 
 class SetsOpenWith(NopListener):
-    def __init__(self, context: "Context"):
-        super().__init__(context)
-
     """The xattr controlling the "Open With" functionality is unfortunately binary.
     To use a different application, use `xattr -px`
 
@@ -57,7 +53,7 @@ class SetsOpenWith(NopListener):
 
     OPEN_WITH_ATTR = binascii.unhexlify(OPEN_WITH_ATTR_HEX)
 
-    def on_entry(self, entry: "Entry") -> None:
+    def on_entry(self, database: "Database", entry: "Entry") -> None:
         if not entry.has_tag("ft", None):
             return
 
@@ -69,7 +65,7 @@ class SetsOpenWith(NopListener):
 
 
 class Symlinker(NopListener):
-    def on_entry(self, entry: "Entry") -> None:
+    def on_entry(self, database: "Database", entry: "Entry") -> None:
         if self.state.get("yyyymmdd") is None:
             self.state["yyyymmdd"] = jnl.system.yyyymmdd()
         tags = [t for t in entry.tags if t.name == "quick" and t.value is not None]
@@ -79,7 +75,7 @@ class Symlinker(NopListener):
             dir_parts = parts[:-1]
             past = parts[-1]
             filename_part = "%s.%s" % (past, entry.file_extension())
-            into_dir = self.context.database.path("quick", *dir_parts)
+            into_dir = database.path("quick", *dir_parts)
             symlink = os.path.join(into_dir, filename_part)
             if jnl.system.exists(symlink):
                 existing = jnl.system.readlink(symlink)
@@ -95,8 +91,8 @@ class Symlinker(NopListener):
 
 
 class PreScanQuickCleaner(NopListener):
-    def on_pre_scan(self) -> None:
-        path = self.context.database.path("quick")
+    def on_pre_scan(self, database: "Database") -> None:
+        path = database.path("quick")
         print(("Scanning %s" % path))
         if jnl.system.exists(path):
             jnl.system.rmtree(path)
