@@ -21,8 +21,10 @@ from .entries import EntryMatch
 import jnl.system
 
 
-# TODO: is this really necessary?
-class ColoredUI(object):
+class Searcher(object):
+    def __init__(self, database: Database):
+        self.database = database
+
     @contextmanager
     def colored_screen(self) -> Generator[TextIO]:
         try:
@@ -31,14 +33,8 @@ class ColoredUI(object):
         finally:
             pass
 
-
-class Searcher(object):
-    def __init__(self, database: Database):
-        self.database = database
-
     def search(self, pattern: Pattern[AnyStr]) -> None:
-        ui = ColoredUI()
-        with ui.colored_screen() as scr:
+        with self.colored_screen() as scr:
             return self._search(pattern, scr)
 
     def _search(self, pattern: Pattern[AnyStr], scr: TextIO) -> None:
