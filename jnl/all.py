@@ -127,7 +127,6 @@ class Context(object):
         self.database = Database(
             entry_listeners=[SetsOpenWith(), Symlinker(), PreScanQuickCleaner()],
         )
-        self.searcher = Searcher(self.database)
 
 
 # TODO: is this really necessary?

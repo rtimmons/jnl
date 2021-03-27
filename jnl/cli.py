@@ -2,7 +2,7 @@ import os
 import re
 import sys
 
-from jnl.all import Context
+from jnl.all import Context, Searcher
 from jnl import system
 
 
@@ -36,7 +36,8 @@ class Main(object):
                 )
             pat_source = pat_source[1:-1]
             pattern = re.compile(pat_source)
-        return self.context.searcher.search(pattern)
+        searcher = Searcher(database=self.context.database)
+        return searcher.search(pattern)
 
     def stat(self, _):
         git_dir = self.context.database.path()
