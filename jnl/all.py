@@ -18,9 +18,8 @@ from typing import (
     Tuple,
 )
 
-from .entries import Entry, EntryMatch
+from .entries import Entry, EntryMatch, Tag
 from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner, NopListener
-from .tag import Tag
 
 import jnl.system
 
