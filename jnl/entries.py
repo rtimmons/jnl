@@ -185,13 +185,11 @@ class Entry(object):
     def tags(self) -> List[Tag]:
         if self._tags is None:
             tags = []
-            # TODO: use self.lines here
-            with open(self.file_path()) as f:
-                for line in f:
-                    on_line = Tag.parse(line)
-                    tags.extend(on_line)
-                    if [t for t in on_line if t.name == "noscan"]:
-                        break
+            for line, line_no in self.lines():
+                on_line = Tag.parse(line)
+                tags.extend(on_line)
+                if [t for t in on_line if t.name == "noscan"]:
+                    break
             self._tags = [t for t in tags if t is not None]
         return self._tags
 
@@ -208,10 +206,10 @@ class Entry(object):
                     break
                 elif line_index < min_index:
                     continue
-                yield (line.strip(), line_index)
+                yield line.strip(), line_index
 
     def text(self) -> str:
-        out = "\n".join([x for x in self.lines()])
+        out = "\n".join([line for (line, line_no) in self.lines()])
         return out
 
     # maybe combine has_tag and tag_starts_with and pass in a predicate for the tag value?

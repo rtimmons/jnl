@@ -89,7 +89,7 @@ class Database:
         return existing[-2][0]
 
     def scan(self) -> None:
-        # TODO: multi-thread all of this nonsense
+        # Could multi-thread but it's super fast even with 1800+ worklog entries.
         listeners = self.entry_listeners
         for listener in listeners:
             listener.on_pre_scan(database=self)

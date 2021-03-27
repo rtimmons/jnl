@@ -34,8 +34,6 @@ def _search(database: Database, pattern: Pattern[AnyStr], scr: TextIO) -> None:
     entries: Dict[str, List[EntryMatch]] = database.entries_matching(pattern)
     index: int = 0
     options: Dict[int, str] = {}
-    # TODO: this impl is messy and split up between EntryMatch and here
-    # TODO: better sorting
     scr.write(Fore.LIGHTGREEN_EX + "Found " + str(len(entries)) + ":\n")
     written = 0
     for k, v in entries.items():

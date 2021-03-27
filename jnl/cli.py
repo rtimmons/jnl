@@ -80,7 +80,6 @@ class Main(object):
     def scan(self, _):
         self.database.scan()
 
-    # TODO: finish
     def yesterday(self):
         daily = self.database.yesterday_entry()
         jnl.system.open_entry(daily)
