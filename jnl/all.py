@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# Postpone evaluation of annotations
 from __future__ import annotations
 
 import sys
@@ -24,7 +25,7 @@ from .listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner, NopListener
 from .tag import Tag
 
 
-class Settings(object):
+class Settings:
     def __init__(self, context: Context):
         self.context = context
 
@@ -32,7 +33,7 @@ class Settings(object):
         return self.context.environment["JNL_DIR"]
 
 
-class Database(object):
+class Database:
     def __init__(
         self,
         system: System,
@@ -276,7 +277,7 @@ class Entry(object):
         return out
 
 
-class EntryMatch(object):
+class EntryMatch:
     def __init__(self, entry: Entry, match: Match[AnyStr], matched_line_index: int):
         self.entry = entry
         self.match = match
@@ -303,7 +304,7 @@ class EntryMatch(object):
             scr.write("\n")
 
 
-class Git(object):
+class Git:
     def __init__(self, context: Context):
         self.context = context
 
