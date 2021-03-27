@@ -2,7 +2,8 @@ import os
 import re
 import sys
 
-from jnl.all import Searcher, Database
+from jnl.all import Searcher
+from jnl.database import Database
 from jnl import system
 from jnl.listeners import SetsOpenWith, Symlinker, PreScanQuickCleaner
 
