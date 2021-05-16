@@ -1,3 +1,6 @@
+-   2021-05-16: naming and other conventions from Dendron?
+        https://www.dendron.so/
+
 -   Summary files:  
     Create `summary/weekly.txt`, `summary/monthly.txt`, etc.
     (Bonus points if can bi-directionally edit them!)
