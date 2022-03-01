@@ -236,8 +236,8 @@ class Entry:
         # can probably be turned into a nicer comprehension
         out = []
         for (line, line_index) in self.lines():
-            match: Optional[Match[AnyStr]] = pattern.search(line)
-            if match:
-                entry_match = EntryMatch(self, match, line_index)
+            the_match: Optional[Match[AnyStr]] = pattern.search(line)
+            if the_match:
+                entry_match = EntryMatch(self, the_match, line_index)
                 out.append(entry_match)
         return out
