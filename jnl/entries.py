@@ -7,7 +7,7 @@ from colorama import Fore
 import jnl.system
 
 
-class Tag(object):
+class Tag:
     TAG_RE = re.compile(
         r"""
         @
@@ -105,7 +105,7 @@ class EntryMatch:
             scr.write("\n")
 
 
-class Entry(object):
+class Entry:
     FILENAME_RE = re.compile(
         r"""
         ^
@@ -172,6 +172,9 @@ class Entry(object):
 
     def file_extension(self) -> str:
         return self.file_name.split(".")[-1]
+
+    def rename_file(self, new_name: str):
+        jnl.system.git_mv(self.worklogs_path, self.file_name, new_name)
 
     def _create(self) -> None:
         with open(self.file_path(), "w+") as f:

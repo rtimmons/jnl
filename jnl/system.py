@@ -6,7 +6,7 @@ import shutil
 import subprocess
 from contextlib import contextmanager
 
-from typing import List
+from typing import List, Union
 
 import dateparser
 
@@ -68,14 +68,20 @@ def in_dir(path: str) -> None:
         os.chdir(old_dir)
 
 
-def _git_run(git_dir, git_command: str):
-    command = ["git", git_command]
+def _git_run(git_dir, *git_command: Union[str, List[str]]):
+    if isinstance(git_command, str):
+        git_command = [git_command]
+    command = ["git", *git_command]
     with in_dir(git_dir):
-        print(check_call(command))
+        check_call(command)
 
 
 def git_stat(git_dir: str):
     _git_run(git_dir, "status")
+
+
+def git_mv(git_dir: str, old: str, new: str):
+    _git_run(git_dir, "mv", old, new)
 
 
 def git_pull(git_dir: str):

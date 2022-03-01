@@ -30,6 +30,12 @@ class Main(object):
         if len(argv) > 2 and argv[2] == "push":
             jnl.system.git_autopush(git_dir)
 
+    def rename_daily(self, argv):
+        entries = [x for x in self.database.entries if x.is_a_daily_entry()]
+        for entry in entries:
+            daily = entry.is_a_daily_entry()
+            entry.rename_file(f"{daily}.txt")
+
     def search(self, argv):
         pat_source: str = argv[2]
 
@@ -75,6 +81,8 @@ class Main(object):
             return self.open(argv)
         if argv[1] == "sync":
             return self.sync(argv)
+        if argv[1] == "rename-daily":
+            return self.rename_daily(argv)
         raise ValueError("Don't know about action {}".format(argv[1]))
 
     def scan(self, _):
