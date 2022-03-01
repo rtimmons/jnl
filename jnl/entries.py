@@ -149,9 +149,13 @@ class Entry:
         re.X,
     )
 
+    EXTRACT_GUID_RE = re.compile(
+        r"^(?:My Reference):\s+([A-Z0-9]+)\s*$",
+    )
+
     @staticmethod
-    def valid_file_name(file_name) -> Optional[Match[AnyStr]]:
-        return Entry.FILENAME_RE.match(file_name)
+    def valid_file_name(file_name: str) -> bool:
+        return file_name.endswith(".txt")
 
     def __init__(
         self,
@@ -164,17 +168,23 @@ class Entry:
     ):
         self.worklogs_path = worklogs_path
 
-        if guid is None:
+        found_guid = guid
+        if found_guid is None:
             if file_name is None:
-                guid = jnl.system.guid()
+                found_guid = jnl.system.guid()
             else:
                 match = Entry.FILENAME_RE.match(file_name)
-                if match is None:
-                    # TODO: add test of this
-                    print(("file_name mismatch %s" % file_name))
-                    raise ValueError
-                guid = match.group(1).strip()
-        self.guid: str = guid
+                if match is not None:
+                    found_guid = match.group(1).strip()
+        if found_guid is None:
+            with open(os.path.join(self.worklogs_path, file_name), "r") as handle:
+                for line in handle.readlines():
+                    match = Entry.EXTRACT_GUID_RE.match(line)
+                    if match:
+                        found_guid = match.group(0)
+        if found_guid is None:
+            raise ValueError(f"Couldn't find guid on {file_name}")
+        self.guid: str = found_guid
 
         if path is None:
             path = self.worklogs_path
