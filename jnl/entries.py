@@ -1,6 +1,16 @@
 import os
 import re
-from typing import Optional, Match, AnyStr, List, Generator, Pattern, TextIO, Tuple
+from typing import (
+    Callable,
+    Optional,
+    Match,
+    AnyStr,
+    List,
+    Generator,
+    Pattern,
+    TextIO,
+    Tuple,
+)
 
 from colorama import Fore
 
@@ -36,6 +46,17 @@ class Tag:
         re.VERBOSE,
     )
 
+    ONE_ON_ONE_RE = re.compile(
+        r"""
+        ^
+        [O|o]ne
+        /(.*?)          # group 1: person
+        /(.*?)          # group 2: date
+        $
+        """,
+        re.VERBOSE,
+    )
+
     @staticmethod
     def parse(line: str) -> List["Tag"]:
         """Return list of tags"""
@@ -54,6 +75,17 @@ class Tag:
             value = re_match.group(2)
         self._name: str = name
         self._value: str = value
+
+    def one_on_one(self) -> Optional[Tuple[str, str]]:
+        """
+        :returns [name, date] if the tag represents a @quick(One/name/date) value.
+        """
+        if self.name != "quick" or not self.value:
+            return None
+        match = Tag.ONE_ON_ONE_RE.match(self.value)
+        if match:
+            return match.group(1), match.group(2)
+        return None
 
     def daily(self) -> Optional[str]:
         if self.name != "quick" or not self.value:
@@ -209,7 +241,7 @@ class Entry:
         return val
 
     def lines(
-        self, min_index: int = 0, max_index: Optional[int] = None
+        self, min_index: int = 0, max_index: Optional[int] = None, strip=False
     ) -> Generator[Tuple[str, int], None, None]:
         if min_index < 0 or (max_index is not None and min_index > max_index):
             raise ValueError("Invalid min={} and max={}".format(min_index, max_index))
@@ -221,11 +253,44 @@ class Entry:
                     break
                 elif line_index < min_index:
                     continue
-                yield line.strip(), line_index
+                yield line.strip() if strip else line, line_index
 
     def text(self) -> str:
         out = "\n".join([line for (line, line_no) in self.lines()])
         return out
+
+    def rewrite(self, replacements: List[Callable[[str], str]]):
+        lines = [*self.lines(strip=False)]
+        replaced = []
+        for line, line_no in lines:
+            for replacement in replacements:
+                line = replacement(line)
+            replaced.append(line)
+        if lines == replaced:
+            return
+        with open(self.file_path(), "w") as handle:
+            handle.writelines(replaced)
+
+    def convert_ft_tags_to_obsidian(self):
+        """
+        Convert lines like
+            @quick(One/Foo/yyyy-mm-dd)
+        to
+            #one/Foo yyyy-mm-dd
+        """
+
+        def _conv_tag(line: str) -> str:
+            tags = Tag.parse(line)
+            if not tags:
+                return line
+            one = [t for t in tags if t.one_on_one()]
+            if not one or not one[0]:
+                return line
+            person, when = one[0].one_on_one()
+            person = person.replace(" ", "_")
+            return line.replace(str(one[0]), f"#one/{person} {when}")
+
+        self.rewrite([_conv_tag])
 
     # maybe combine has_tag and tag_starts_with and pass in a predicate for the tag value?
 

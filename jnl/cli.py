@@ -43,6 +43,10 @@ class Main(object):
             # TODO: finish
             print(f"{quick}: {entry.guid}")
 
+    def convert_to_obsidian_tags_one(self, argv):
+        for entry in self.database.entries:
+            entry.convert_ft_tags_to_obsidian()
+
     def search(self, argv):
         pat_source: str = argv[2]
 
@@ -92,6 +96,8 @@ class Main(object):
             return self.rename_daily(argv)
         if argv[1] == "rename-single-quick":
             return self.rename_single_quick(argv)
+        if argv[1] == "convert-to-obsidian-tags-one":
+            return self.convert_to_obsidian_tags_one(argv)
         raise ValueError("Don't know about action {}".format(argv[1]))
 
     def scan(self, _):
