@@ -158,6 +158,8 @@ class Entry:
         if create:
             self._create()
 
+        self._tags: List[Tag] = []
+
     def is_a_daily_entry(self) -> Optional[str]:
         """
         :return: if this entry has @quick(daily/X) returns X else None
@@ -186,7 +188,7 @@ class Entry:
 
     @property
     def tags(self) -> List[Tag]:
-        if self._tags is None:
+        if not self._tags:
             tags = []
             for line, line_no in self.lines():
                 on_line = Tag.parse(line)
@@ -195,6 +197,16 @@ class Entry:
                     break
             self._tags = [t for t in tags if t is not None]
         return self._tags
+
+    def single_quick_entry(self) -> Optional[str]:
+        quick = [t for t in self.tags if t.name == "quick"]
+        if len(quick) != 1 or self.is_a_daily_entry():
+            return None
+        val = quick[0].value
+        if "/" in val:
+            # TODO: handle subdirs separately
+            return None
+        return val
 
     def lines(
         self, min_index: int = 0, max_index: Optional[int] = None
